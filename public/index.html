@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dictate - AIが音声をリアルタイムで文字起こし。フィラーワードを自動除去し、整形されたテキストをアクティブなアプリに直接入力します。">
+  <meta property="og:title" content="Dictate - AI音声文字起こし for macOS">
+  <meta property="og:description" content="話すだけで、テキストに。AIが音声をリアルタイムで文字起こし。フィラーワードを自動除去し、整形されたテキストを直接入力。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dictate-site.vercel.app">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Dictate - AI音声文字起こし for macOS">
+  <meta name="twitter:description" content="話すだけで、テキストに。AIが音声をリアルタイムで文字起こし。">
+  <title>Dictate - AI音声文字起こし for macOS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              400: '#a78bfa',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-950 text-white font-sans">
+
+  <!-- Navigation -->
+  <nav class="sticky top-0 z-50 bg-gray-950/80 backdrop-blur-md border-b border-gray-800">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <span class="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Dictate</span>
+        <div class="hidden sm:flex items-center gap-8 text-sm text-gray-400">
+          <a href="#features" class="hover:text-white transition-colors">機能</a>
+          <a href="#pricing" class="hover:text-white transition-colors">料金</a>
+          <a href="#how-it-works" class="hover:text-white transition-colors">使い方</a>
+        </div>
+        <a href="#download" class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all">
+          ダウンロード
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="pt-20 pb-24 px-4">
+    <div class="max-w-5xl mx-auto flex flex-col lg:flex-row items-center gap-12">
+      <div class="flex-1 text-center lg:text-left">
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+          話すだけで、<br><span class="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">テキストに。</span>
+        </h1>
+        <p class="text-lg sm:text-xl text-gray-400 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0">
+          AIが音声をリアルタイムで文字起こし。フィラーワードを自動除去し、整形されたテキストをアクティブなアプリに直接入力します。
+        </p>
+        <a href="#download" class="inline-block bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-lg font-semibold px-8 py-4 rounded-xl transition-all shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40">
+          無料でダウンロード
+        </a>
+        <p class="mt-4 text-sm text-gray-500">macOS対応 / 無料で全機能利用可能</p>
+      </div>
+      <div class="flex-1 flex justify-center">
+        <div class="w-72 h-48 sm:w-80 sm:h-56 rounded-2xl bg-gradient-to-br from-purple-900/50 to-blue-900/50 border border-gray-700 flex flex-col items-center justify-center gap-3 shadow-2xl">
+          <div class="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m14 0a7 7 0 00-14 0m14 0v1a7 7 0 01-14 0v-1m7 8v3m-4 0h8"/>
+            </svg>
+          </div>
+          <div class="flex gap-1">
+            <div class="w-1 h-6 bg-purple-500 rounded-full animate-pulse"></div>
+            <div class="w-1 h-8 bg-purple-400 rounded-full animate-pulse" style="animation-delay:0.1s"></div>
+            <div class="w-1 h-5 bg-blue-400 rounded-full animate-pulse" style="animation-delay:0.2s"></div>
+            <div class="w-1 h-9 bg-blue-500 rounded-full animate-pulse" style="animation-delay:0.15s"></div>
+            <div class="w-1 h-4 bg-purple-400 rounded-full animate-pulse" style="animation-delay:0.25s"></div>
+            <div class="w-1 h-7 bg-purple-500 rounded-full animate-pulse" style="animation-delay:0.05s"></div>
+            <div class="w-1 h-6 bg-blue-400 rounded-full animate-pulse" style="animation-delay:0.3s"></div>
+          </div>
+          <p class="text-sm text-gray-400">Option + Space で録音開始</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem -->
+  <section class="bg-gray-900 py-20 px-4">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-2xl sm:text-3xl font-bold text-center mb-4">macOSの音声入力、こんな不満はありませんか？</h2>
+      <p class="text-center text-gray-400 mb-12">多くのユーザーが直面している問題</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <div class="w-12 h-12 bg-red-900/50 rounded-lg flex items-center justify-center mb-4 text-2xl">😤</div>
+          <h3 class="text-lg font-semibold mb-2">精度が不十分</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">macOS標準の音声入力は認識精度に限界があり、修正に時間がかかる。</p>
+        </div>
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <div class="w-12 h-12 bg-red-900/50 rounded-lg flex items-center justify-center mb-4 text-2xl">🗣️</div>
+          <h3 class="text-lg font-semibold mb-2">フィラーワードが残る</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">「えっと」「あの」「えー」がそのまま入力され、手動で削除する必要がある。</p>
+        </div>
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <div class="w-12 h-12 bg-red-900/50 rounded-lg flex items-center justify-center mb-4 text-2xl">❌</div>
+          <h3 class="text-lg font-semibold mb-2">句読点が入らない</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">句読点が自動挿入されず、文章として整形するのに追加作業が必要。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="py-20 px-4">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-2xl sm:text-3xl font-bold text-center mb-4">Dictateの特徴</h2>
+      <p class="text-center text-gray-400 mb-12">AI音声文字起こしに必要な全てを搭載</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-colors">
+          <div class="text-3xl mb-4">🎯</div>
+          <h3 class="text-lg font-semibold mb-2">AI文字起こし</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Gemini AIによる高精度な音声認識。日本語に最適化されたモデルで、正確な文字起こしを実現。</p>
+        </div>
+        <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-colors">
+          <div class="text-3xl mb-4">✨</div>
+          <h3 class="text-lg font-semibold mb-2">テキスト整形</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">フィラーワード（えっと、あの等）を自動除去。句読点の挿入、言い直しの処理も自動で行います。</p>
+        </div>
+        <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-colors">
+          <div class="text-3xl mb-4">⌨️</div>
+          <h3 class="text-lg font-semibold mb-2">直接入力</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">文字起こし結果をアクティブなアプリケーションに自動でタイプ入力。コピペ不要。</p>
+        </div>
+        <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-colors">
+          <div class="text-3xl mb-4">⚡</div>
+          <h3 class="text-lg font-semibold mb-2">グローバルショートカット</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Option+Spaceでどのアプリからでも即座に起動。ワークフローを中断しません。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how-it-works" class="bg-gray-900 py-20 px-4">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-2xl sm:text-3xl font-bold text-center mb-4">使い方</h2>
+      <p class="text-center text-gray-400 mb-12">3ステップで簡単セットアップ</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-white text-xl font-bold">1</span>
+          </div>
+          <h3 class="text-lg font-semibold mb-3">ダウンロード</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">GitHub Releasesからdmgをダウンロードしてインストール。</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-white text-xl font-bold">2</span>
+          </div>
+          <h3 class="text-lg font-semibold mb-3">設定</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">APIキーを設定、または使い放題プランに申し込み。</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-white text-xl font-bold">3</span>
+          </div>
+          <h3 class="text-lg font-semibold mb-3">録音</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Option+Spaceを押して話すだけ。テキストが自動入力されます。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Demo -->
+  <section class="py-20 px-4">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-2xl sm:text-3xl font-bold text-center mb-4">Before / After</h2>
+      <p class="text-center text-gray-400 mb-12">フィラーワード除去と文章整形の実例</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="bg-red-950/30 rounded-xl p-6 border border-red-900/50">
+          <div class="text-xs font-semibold text-red-400 uppercase tracking-wide mb-3">Before（音声そのまま）</div>
+          <p class="text-gray-300 text-sm leading-relaxed">
+            「えっと、あの、明日の会議なんですけど、えー、13時からでいいですかね、あの、場所は会議室Aで」
+          </p>
+        </div>
+        <div class="bg-green-950/30 rounded-xl p-6 border border-green-900/50">
+          <div class="text-xs font-semibold text-green-400 uppercase tracking-wide mb-3">After（Dictate処理後）</div>
+          <p class="text-gray-300 text-sm leading-relaxed">
+            「明日の会議は13時から、場所は会議室Aでお願いします。」
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="bg-gray-900 py-20 px-4">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl sm:text-3xl font-bold text-center mb-4">料金プラン</h2>
+      <p class="text-center text-gray-400 mb-12">用途に合わせて選べる2つのプラン</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <!-- Free plan -->
+        <div class="bg-gray-800 rounded-2xl p-8 border border-gray-700">
+          <div class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">無料プラン</div>
+          <div class="text-4xl font-bold mb-1">&yen;0</div>
+          <p class="text-gray-500 text-sm mb-6">自分のAPIキーを使用</p>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center gap-3 text-sm text-gray-300">
+              <svg class="w-5 h-5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              自分のGemini APIキーを使用
+            </li>
+            <li class="flex items-center gap-3 text-sm text-gray-300">
+              <svg class="w-5 h-5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              無制限利用
+            </li>
+            <li class="flex items-center gap-3 text-sm text-gray-300">
+              <svg class="w-5 h-5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              全機能利用可能
+            </li>
+          </ul>
+          <a href="#download" class="block w-full text-center bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 rounded-lg transition-colors">
+            ダウンロード
+          </a>
+        </div>
+        <!-- Unlimited plan -->
+        <div class="bg-gray-800 rounded-2xl p-8 border-2 border-purple-500 relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">おすすめ</div>
+          <div class="text-sm font-semibold text-purple-400 uppercase tracking-wide mb-2">使い放題プラン</div>
+          <div class="text-4xl font-bold mb-1">&yen;1,000<span class="text-lg font-normal text-gray-400">/月</span></div>
+          <p class="text-gray-500 text-sm mb-6">APIキー設定不要</p>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center gap-3 text-sm text-gray-300">
+              <svg class="w-5 h-5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              APIキー設定不要
+            </li>
+            <li class="flex items-center gap-3 text-sm text-gray-300">
+              <svg class="w-5 h-5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              無制限利用
+            </li>
+            <li class="flex items-center gap-3 text-sm text-gray-300">
+              <svg class="w-5 h-5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              全機能利用可能
+            </li>
+            <li class="flex items-center gap-3 text-sm text-gray-300">
+              <svg class="w-5 h-5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              自動アップデート
+            </li>
+          </ul>
+          <button id="subscribe-btn" class="block w-full text-center bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold py-3 rounded-lg transition-all">
+            申し込む
+          </button>
+          <p class="mt-3 text-xs text-gray-500 text-center">毎月自動更新されます。いつでも解約可能です。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="py-20 px-4">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-2xl sm:text-3xl font-bold text-center mb-12">よくある質問</h2>
+      <div class="space-y-4">
+        <details class="bg-gray-900 rounded-xl border border-gray-800 group">
+          <summary class="p-6 cursor-pointer text-base font-semibold flex justify-between items-center">
+            無料プランと使い放題プランの違いは？
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-6 text-gray-400 text-sm leading-relaxed">
+            無料プランではご自身でGemini APIキーを取得・設定していただく必要があります。使い放題プランではAPIキーの設定が不要で、すぐにご利用いただけます。どちらのプランも全機能を無制限でご利用いただけます。
+          </div>
+        </details>
+        <details class="bg-gray-900 rounded-xl border border-gray-800 group">
+          <summary class="p-6 cursor-pointer text-base font-semibold flex justify-between items-center">
+            Gemini APIキーはどこで取得できますか？
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-6 text-gray-400 text-sm leading-relaxed">
+            <a href="https://aistudio.google.com/apikey" target="_blank" class="text-purple-400 hover:underline">Google AI Studio</a>で無料で取得できます。Googleアカウントがあればすぐに発行可能です。
+          </div>
+        </details>
+        <details class="bg-gray-900 rounded-xl border border-gray-800 group">
+          <summary class="p-6 cursor-pointer text-base font-semibold flex justify-between items-center">
+            解約はいつでもできますか？
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-6 text-gray-400 text-sm leading-relaxed">
+            はい、いつでも解約可能です。解約後も当月末まではご利用いただけます。
+          </div>
+        </details>
+        <details class="bg-gray-900 rounded-xl border border-gray-800 group">
+          <summary class="p-6 cursor-pointer text-base font-semibold flex justify-between items-center">
+            対応OSは？
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-6 text-gray-400 text-sm leading-relaxed">
+            現在macOSのみ対応しています。Windows/Linux版は今後の対応を検討中です。
+          </div>
+        </details>
+        <details class="bg-gray-900 rounded-xl border border-gray-800 group">
+          <summary class="p-6 cursor-pointer text-base font-semibold flex justify-between items-center">
+            音声データはサーバーに保存されますか？
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-6 text-gray-400 text-sm leading-relaxed">
+            いいえ、音声データはサーバーに保存されません。文字起こし処理のためにAPIへ送信されますが、処理後即座に破棄されます。
+          </div>
+        </details>
+        <details class="bg-gray-900 rounded-xl border border-gray-800 group">
+          <summary class="p-6 cursor-pointer text-base font-semibold flex justify-between items-center">
+            Deepgram APIキーは必要ですか？
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-6 text-gray-400 text-sm leading-relaxed">
+            オプションです。Deepgram APIキーを設定するとリアルタイムの中間表示が有効になりますが、なくても文字起こし機能は正常に動作します。
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download -->
+  <section id="download" class="bg-gray-900 py-20 px-4">
+    <div class="max-w-xl mx-auto text-center">
+      <div class="bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl p-8 sm:p-12 border border-purple-500/30">
+        <h2 class="text-2xl sm:text-3xl font-bold mb-4">ダウンロード</h2>
+        <p class="text-gray-400 mb-8">macOS用アプリケーションを無料でダウンロード</p>
+        <a href="https://github.com/MasatoshiToku/dictate/releases/latest" target="_blank" class="inline-block bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-lg font-semibold px-8 py-4 rounded-xl transition-all shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 mb-6">
+          DMGをダウンロード
+        </a>
+        <div class="text-left space-y-4 mt-8">
+          <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wide">動作要件</h3>
+          <ul class="text-sm text-gray-400 space-y-1">
+            <li>- macOS</li>
+            <li>- マイク権限</li>
+            <li>- アクセシビリティ権限</li>
+          </ul>
+          <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mt-6">インストール手順</h3>
+          <ol class="text-sm text-gray-400 space-y-2">
+            <li>1. DMGファイルをダウンロード</li>
+            <li>2. DMGを開き、アプリをApplicationsフォルダにドラッグ</li>
+            <li>3. アプリを右クリック →「開く」を選択（初回のみ）</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-950 border-t border-gray-800 py-10 px-4">
+    <div class="max-w-5xl mx-auto">
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-6">
+        <span class="text-lg font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Dictate</span>
+        <div class="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
+          <a href="/privacy.html" class="hover:text-white transition-colors">プライバシーポリシー</a>
+          <a href="/terms.html" class="hover:text-white transition-colors">利用規約</a>
+          <a href="/tokushoho.html" class="hover:text-white transition-colors">特定商取引法に基づく表記</a>
+          <a href="https://github.com/MasatoshiToku/dictate" target="_blank" class="hover:text-white transition-colors">GitHub</a>
+        </div>
+      </div>
+      <p class="text-center text-sm text-gray-600 mt-6">&copy; 2026 Dictate. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Subscription button
+    document.getElementById('subscribe-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('subscribe-btn');
+      btn.disabled = true;
+      btn.textContent = '処理中...';
+      try {
+        const res = await fetch('/api/checkout', { method: 'POST' });
+        const data = await res.json();
+        if (data.url) window.location.href = data.url;
+        else alert('エラーが発生しました。もう一度お試しください。');
+      } catch (e) {
+        alert('エラーが発生しました。もう一度お試しください。');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '申し込む';
+      }
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+      link.addEventListener('click', e => {
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

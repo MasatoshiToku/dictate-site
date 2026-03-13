@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://dictate-site.vercel.app/sitemap.xml
