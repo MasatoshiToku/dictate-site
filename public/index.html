@@ -254,6 +254,20 @@
           <h3 class="text-lg font-bold mb-2">グローバルショートカット</h3>
           <p class="text-gray-400 text-sm leading-relaxed">Option+Spaceでどのアプリからでも即座に起動。ワークフローを中断しません。</p>
         </div>
+        <div class="feature-card glass rounded-2xl p-8 border border-white/5 sm:col-span-2 reveal reveal-delay-4">
+          <div class="flex flex-col sm:flex-row sm:items-start gap-5">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                <h3 class="text-lg font-bold">リアルタイムプレビュー</h3>
+                <span class="text-xs font-medium text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full">オプション</span>
+              </div>
+              <p class="text-gray-400 text-sm leading-relaxed">Deepgramを有効にすると、録音中にリアルタイムで文字起こしのプレビューが表示されます。確定前にどう認識されているか確認でき、安心して話し続けられます。Deepgram APIキーは<kbd class="px-1.5 py-0.5 bg-gray-800 border border-gray-600 rounded text-xs font-mono text-gray-300">F2</kbd>の設定画面で入力できます。</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -378,7 +392,7 @@
       <div class="text-center mb-16 reveal">
         <p class="text-purple-400 text-sm font-semibold tracking-widest mb-3">SETUP GUIDE</p>
         <h2 class="text-3xl sm:text-4xl font-bold mb-4">セットアップガイド</h2>
-        <p class="text-gray-400">Gemini APIキーの取得方法</p>
+        <p class="text-gray-400">Gemini APIキーの取得方法とオプション設定</p>
       </div>
       <div class="glass rounded-2xl p-8 sm:p-10 border border-white/5 reveal">
         <div class="flex items-start gap-4 mb-8 bg-purple-500/5 border border-purple-500/10 rounded-xl p-5">
@@ -434,6 +448,21 @@
             </summary>
             <div class="faq-body ml-12 mt-2"><div>
               <p class="text-gray-400 text-sm pb-1">Dictateアプリで<kbd class="px-1.5 py-0.5 bg-gray-800 border border-gray-600 rounded text-xs font-mono text-gray-300">F2</kbd>キーを押して設定画面を開き、取得したAPIキーを貼り付けます。言語設定やDeepgramの有効化もここで行えます。</p>
+            </div></div>
+          </details>
+          <div class="border-t border-white/5"></div>
+          <details class="group">
+            <summary class="flex items-start gap-4 cursor-pointer">
+              <span class="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold text-white shadow-sm">+</span>
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-semibold text-white">リアルタイムプレビューを有効化 <span class="text-xs font-normal text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full ml-2">オプション</span></h4>
+                  <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+              </div>
+            </summary>
+            <div class="faq-body ml-12 mt-2"><div>
+              <p class="text-gray-400 text-sm pb-1"><a href="https://console.deepgram.com/" target="_blank" class="text-blue-400 hover:text-blue-300 underline underline-offset-2">Deepgram Console</a>でAPIキーを取得し、<kbd class="px-1.5 py-0.5 bg-gray-800 border border-gray-600 rounded text-xs font-mono text-gray-300">F2</kbd>設定画面で入力すると、録音中にリアルタイムで文字起こしプレビューが表示されます。設定しなくてもGemini AIによる文字起こしは正常に動作します。</p>
             </div></div>
           </details>
         </div>
