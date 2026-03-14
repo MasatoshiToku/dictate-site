@@ -13,6 +13,9 @@
   <meta name="twitter:title" content="Dictate - AI音声文字起こし for macOS">
   <meta name="twitter:description" content="話すだけで、テキストに。AIが音声をリアルタイムで文字起こし。">
   <title>Dictate - AI音声文字起こし for macOS</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -104,6 +107,42 @@
     /* Transform arrow animation */
     @keyframes arrow-pulse { 0%,100%{opacity:.4;transform:translateX(0)} 50%{opacity:1;transform:translateX(4px)} }
     .arrow-pulse { animation:arrow-pulse 1.5s ease-in-out infinite; }
+
+    /* Mobile menu animation */
+    #mobile-menu { transition:opacity .3s ease; opacity:0; pointer-events:none; }
+    #mobile-menu.open { opacity:1; pointer-events:auto; }
+    #mobile-menu.open .mobile-menu-link { animation:menu-fade-in .4s ease forwards; opacity:0; }
+    @keyframes menu-fade-in { to { opacity:1; transform:translateY(0); } }
+    .mobile-menu-link { transform:translateY(12px); }
+    .mobile-menu-link:nth-child(1) { animation-delay:.05s }
+    .mobile-menu-link:nth-child(2) { animation-delay:.1s }
+    .mobile-menu-link:nth-child(3) { animation-delay:.15s }
+    .mobile-menu-link:nth-child(4) { animation-delay:.2s }
+    .mobile-menu-link:nth-child(5) { animation-delay:.25s }
+
+    /* Mobile optimizations */
+    @media (max-width:639px) {
+      /* Reduce heavy animations for performance */
+      .animated-gradient-bg { animation-duration:30s; }
+      .float-orb-1, .float-orb-2 { animation:none; }
+      .feature-card:hover { transform:none; }
+
+      /* Better touch targets */
+      .demo-tab { min-height:44px; display:inline-flex; align-items:center; }
+      details summary { min-height:48px; }
+
+      /* Tighter spacing on small screens */
+      .faq-body > div { padding-left:0; }
+    }
+
+    /* Prevent body scroll when mobile menu is open */
+    body.menu-open { overflow:hidden; }
+
+    /* Safe area support for notched devices */
+    @supports (padding: env(safe-area-inset-top)) {
+      #main-nav > div { padding-left:max(1rem, env(safe-area-inset-left)); padding-right:max(1rem, env(safe-area-inset-right)); }
+      body { padding-bottom:env(safe-area-inset-bottom); }
+    }
   </style>
 </head>
 <body class="bg-gray-950 text-white font-sans overflow-x-hidden">
@@ -119,12 +158,31 @@
           <a href="#how-it-works" class="hover:text-white transition-colors">使い方</a>
           <a href="#faq" class="hover:text-white transition-colors">FAQ</a>
         </div>
-        <a href="#download" class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-sm font-medium px-5 py-2 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25">
-          ダウンロード
-        </a>
+        <div class="flex items-center gap-3">
+          <a href="#download" class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-sm font-medium px-5 py-2 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25">
+            ダウンロード
+          </a>
+          <!-- Mobile hamburger button -->
+          <button id="mobile-menu-btn" class="sm:hidden flex items-center justify-center w-10 h-10 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors" aria-label="メニュー">
+            <svg class="w-6 h-6" id="menu-icon-open" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+            <svg class="w-6 h-6 hidden" id="menu-icon-close" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
       </div>
     </div>
   </nav>
+
+  <!-- Mobile menu panel -->
+  <div id="mobile-menu" class="fixed inset-0 z-40 hidden">
+    <div class="absolute inset-0 bg-gray-950/90 backdrop-blur-md" id="mobile-menu-overlay"></div>
+    <nav class="relative flex flex-col items-center justify-center h-full gap-8 text-lg font-medium text-gray-300">
+      <a href="#features" class="mobile-menu-link hover:text-white transition-colors py-2 px-6">機能</a>
+      <a href="#demo" class="mobile-menu-link hover:text-white transition-colors py-2 px-6">デモ</a>
+      <a href="#how-it-works" class="mobile-menu-link hover:text-white transition-colors py-2 px-6">使い方</a>
+      <a href="#faq" class="mobile-menu-link hover:text-white transition-colors py-2 px-6">FAQ</a>
+      <a href="#download" class="mobile-menu-link mt-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold px-8 py-3 rounded-xl">ダウンロード</a>
+    </nav>
+  </div>
 
   <!-- Hero -->
   <section class="animated-gradient-bg relative pt-24 pb-32 sm:pt-32 sm:pb-40 px-4 overflow-hidden">
@@ -147,7 +205,7 @@
           AIが音声をリアルタイムで文字起こし。フィラーワードを自動除去し、整形されたテキストをアクティブなアプリに直接入力します。
         </p>
         <div class="flex flex-col sm:flex-row gap-4 items-center lg:items-start justify-center lg:justify-start">
-          <a href="https://github.com/MasatoshiToku/dictate/releases/tag/v1.0.0" target="_blank" class="btn-glow inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white text-lg font-semibold px-8 py-4 rounded-xl shadow-lg shadow-purple-500/25">
+          <a href="https://github.com/MasatoshiToku/dictate/releases/tag/v1.0.0" target="_blank" class="btn-glow inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl shadow-lg shadow-purple-500/25 w-full sm:w-auto text-center">
             無料でダウンロード
           </a>
           <a href="#how-it-works" class="inline-flex items-center gap-2 text-gray-400 hover:text-white text-base font-medium transition-colors">
@@ -165,7 +223,7 @@
       <div class="flex-1 flex justify-center">
         <div class="relative">
           <div class="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-3xl blur-2xl scale-110"></div>
-          <div class="relative w-80 h-56 sm:w-96 sm:h-64 rounded-2xl glass border border-white/10 flex flex-col items-center justify-center gap-4 shadow-2xl">
+          <div class="relative w-64 h-48 sm:w-96 sm:h-64 rounded-2xl glass border border-white/10 flex flex-col items-center justify-center gap-4 shadow-2xl">
             <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
               <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5a3 3 0 00-3 3v6a3 3 0 006 0v-6a3 3 0 00-3-3z"/>
@@ -394,7 +452,7 @@
         <h2 class="text-3xl sm:text-4xl font-bold mb-4">セットアップガイド</h2>
         <p class="text-gray-400">Gemini APIキーの取得方法とオプション設定</p>
       </div>
-      <div class="glass rounded-2xl p-8 sm:p-10 border border-white/5 reveal">
+      <div class="glass rounded-2xl p-5 sm:p-10 border border-white/5 reveal">
         <div class="flex items-start gap-4 mb-8 bg-purple-500/5 border border-purple-500/10 rounded-xl p-5">
           <div class="w-10 h-10 rounded-lg bg-purple-600/20 flex items-center justify-center flex-shrink-0">
             <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
@@ -414,7 +472,7 @@
                 </div>
               </div>
             </summary>
-            <div class="faq-body ml-12 mt-2"><div>
+            <div class="faq-body ml-6 sm:ml-12 mt-2"><div>
               <p class="text-gray-400 text-sm pb-1">
                 <a href="https://aistudio.google.com/apikey" target="_blank" class="text-purple-400 hover:text-purple-300 underline underline-offset-2">aistudio.google.com/apikey</a> にアクセスし、Googleアカウントでログインします。
               </p>
@@ -431,7 +489,7 @@
                 </div>
               </div>
             </summary>
-            <div class="faq-body ml-12 mt-2"><div>
+            <div class="faq-body ml-6 sm:ml-12 mt-2"><div>
               <p class="text-gray-400 text-sm pb-1">「APIキーを作成」ボタンをクリックして、新しいAPIキーを発行します。</p>
             </div></div>
           </details>
@@ -446,7 +504,7 @@
                 </div>
               </div>
             </summary>
-            <div class="faq-body ml-12 mt-2"><div>
+            <div class="faq-body ml-6 sm:ml-12 mt-2"><div>
               <p class="text-gray-400 text-sm pb-1">Dictateアプリで<kbd class="px-1.5 py-0.5 bg-gray-800 border border-gray-600 rounded text-xs font-mono text-gray-300">F2</kbd>キーを押して設定画面を開き、取得したAPIキーを貼り付けます。言語設定やDeepgramの有効化もここで行えます。</p>
             </div></div>
           </details>
@@ -461,7 +519,7 @@
                 </div>
               </div>
             </summary>
-            <div class="faq-body ml-12 mt-2"><div>
+            <div class="faq-body ml-6 sm:ml-12 mt-2"><div>
               <p class="text-gray-400 text-sm pb-1"><a href="https://console.deepgram.com/" target="_blank" class="text-blue-400 hover:text-blue-300 underline underline-offset-2">Deepgram Console</a>でAPIキーを取得し、<kbd class="px-1.5 py-0.5 bg-gray-800 border border-gray-600 rounded text-xs font-mono text-gray-300">F2</kbd>設定画面で入力すると、録音中にリアルタイムで文字起こしプレビューが表示されます。設定しなくてもGemini AIによる文字起こしは正常に動作します。</p>
             </div></div>
           </details>
@@ -538,14 +596,14 @@
     <div class="max-w-2xl mx-auto text-center reveal">
       <div class="relative">
         <div class="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-blue-600/10 rounded-3xl blur-2xl scale-110"></div>
-        <div class="relative glass rounded-3xl p-10 sm:p-14 border border-white/10">
+        <div class="relative glass rounded-3xl p-6 sm:p-14 border border-white/10">
           <div class="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/30 text-purple-300 text-sm font-medium px-4 py-1.5 rounded-full mb-6 badge-pulse">
             <span class="w-2 h-2 bg-purple-400 rounded-full"></span>
             無料公開中 -- 今すぐお試しください
           </div>
           <h2 class="text-3xl sm:text-4xl font-bold mb-4">Dictateをダウンロード</h2>
           <p class="text-gray-400 mb-10 max-w-md mx-auto">APIキーを用意するだけですぐに使えます。将来的に有料化の可能性がありますので、無料期間中にぜひお試しください。</p>
-          <a href="https://github.com/MasatoshiToku/dictate/releases/tag/v1.0.0" target="_blank" class="btn-glow cta-pulse inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white text-lg font-bold px-10 py-5 rounded-xl shadow-xl shadow-purple-500/30 mb-8">
+          <a href="https://github.com/MasatoshiToku/dictate/releases/tag/v1.0.0" target="_blank" class="btn-glow cta-pulse inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white text-base sm:text-lg font-bold px-8 sm:px-10 py-4 sm:py-5 rounded-xl shadow-xl shadow-purple-500/30 mb-8 w-full sm:w-auto text-center">
             DMGをダウンロード（v1.0.0）
           </a>
           <div class="text-left grid grid-cols-1 sm:grid-cols-2 gap-8 mt-8 pt-8 border-t border-white/5">
@@ -604,6 +662,36 @@
         entries.forEach(function(e) { if (e.isIntersecting) e.target.classList.add('visible'); });
       }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
       document.querySelectorAll('.reveal').forEach(function(el) { obs.observe(el); });
+    })();
+
+    // Mobile menu toggle
+    (function() {
+      var btn = document.getElementById('mobile-menu-btn');
+      var menu = document.getElementById('mobile-menu');
+      var iconOpen = document.getElementById('menu-icon-open');
+      var iconClose = document.getElementById('menu-icon-close');
+      var overlay = document.getElementById('mobile-menu-overlay');
+      if (!btn || !menu) return;
+
+      function toggleMenu() {
+        var isOpen = menu.classList.contains('open');
+        menu.classList.toggle('hidden', isOpen);
+        // Trigger reflow so transition works after removing hidden
+        if (!isOpen) menu.offsetHeight;
+        menu.classList.toggle('open', !isOpen);
+        iconOpen.classList.toggle('hidden', !isOpen);
+        iconClose.classList.toggle('hidden', isOpen);
+        document.body.classList.toggle('menu-open', !isOpen);
+      }
+      btn.addEventListener('click', toggleMenu);
+      overlay.addEventListener('click', toggleMenu);
+
+      // Close menu on link click
+      menu.querySelectorAll('a').forEach(function(link) {
+        link.addEventListener('click', function() {
+          if (menu.classList.contains('open')) toggleMenu();
+        });
+      });
     })();
 
     // Smooth scroll
