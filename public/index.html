@@ -156,7 +156,16 @@
     .demo-tab:not(.active) { color: #6b7280; border-color: transparent; }
     .demo-tab:hover:not(.active) { color: #9ca3af; background: rgba(255,255,255,0.03); }
     @keyframes cursor-blink { 0%,100%{border-color:rgba(139,92,246,.7)} 50%{border-color:transparent} }
-    .demo-cursor { border-right: 2px solid rgba(139,92,246,.7); animation: cursor-blink 1s step-end infinite; padding-right: 2px; }
+    .demo-cursor::after {
+      content: '';
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: rgba(139,92,246,0.7);
+      animation: cursor-blink 1s step-end infinite;
+      vertical-align: text-bottom;
+      margin-left: 1px;
+    }
     @keyframes arrow-pulse { 0%,100%{opacity:.3;transform:translateX(0)} 50%{opacity:1;transform:translateX(4px)} }
     .arrow-pulse { animation: arrow-pulse 2s ease-in-out infinite; }
     .section-glow { position: relative; }
@@ -184,22 +193,51 @@
       position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
       font-size: clamp(4rem,12vw,10rem); font-weight: 900; letter-spacing: 0.05em;
       color: rgba(255,255,255,0.015); pointer-events: none; user-select: none; white-space: nowrap;
+      overflow: hidden; max-width: 100%;
     }
     @keyframes key-press { 0%,100%{transform:translateY(0);box-shadow:0 3px 0 0 rgba(255,255,255,0.08)} 50%{transform:translateY(2px);box-shadow:0 1px 0 0 rgba(255,255,255,0.06)} }
     .key-animate { animation: key-press 2.5s ease-in-out infinite; }
     .key-animate-delay { animation: key-press 2.5s ease-in-out infinite 0.1s; }
     .hero-panel-3d { transform: perspective(1200px) rotateY(-8deg) rotateX(4deg); transition: transform 0.6s cubic-bezier(0.22,1,0.36,1); }
     .hero-panel-3d:hover { transform: perspective(1200px) rotateY(-2deg) rotateX(1deg); }
+    @media (max-width: 767px) {
+      .hero-panel-3d, .hero-panel-3d:hover { transform: none; }
+    }
     .mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease; opacity: 0; }
     .mobile-menu.open { max-height: 300px; opacity: 1; }
     @keyframes icon-breathe { 0%,100%{ box-shadow: 0 0 40px rgba(139,92,246,0.2), 0 0 80px rgba(96,165,250,0.1); } 50%{ box-shadow: 0 0 60px rgba(139,92,246,0.3), 0 0 100px rgba(96,165,250,0.15); } }
     .app-icon-glow { animation: icon-breathe 4s ease-in-out infinite; }
+
+    /* Focus styles for keyboard navigation */
+    :focus-visible {
+      outline: 2px solid rgba(139,92,246,0.6);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    .btn-primary:focus-visible, .btn-outline:focus-visible {
+      outline: 2px solid rgba(139,92,246,0.8);
+      outline-offset: 3px;
+    }
+    summary:focus-visible { outline-offset: 4px; }
+
+    /* Respect reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .reveal { opacity: 1; transform: none; }
+      html { scroll-behavior: auto; }
+    }
   </style>
 </head>
 <body class="bg-surface-0 text-white font-sans overflow-x-hidden antialiased">
+  <!-- Skip Navigation -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:bg-accent-500 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm">Skip to content</a>
 
   <!-- Navigation -->
-  <nav id="main-nav" class="sticky top-0 z-50 glass-subtle border-b border-white/[0.04] transition-all duration-500">
+  <nav id="main-nav" class="sticky top-0 z-50 glass-subtle border-b border-white/[0.04] transition-all duration-500" role="navigation" aria-label="Main navigation">
     <div class="max-w-5xl mx-auto px-5 sm:px-8">
       <div class="flex justify-between items-center h-14">
         <a href="#" class="text-lg font-bold gradient-text tracking-tight">Dictate</a>
@@ -213,40 +251,41 @@
           <a href="#download" class="text-[13px] font-medium px-4 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.08] text-gray-300 hover:bg-white/[0.1] hover:text-white transition-all duration-300">
             Download
           </a>
-          <button id="mobile-menu-btn" class="sm:hidden flex flex-col justify-center items-center w-8 h-8 gap-[5px] rounded-lg hover:bg-white/[0.06] transition-colors" aria-label="Menu">
-            <span class="hamburger-line w-4 h-[1.5px] bg-gray-400 rounded-full transition-all duration-300"></span>
-            <span class="hamburger-line w-4 h-[1.5px] bg-gray-400 rounded-full transition-all duration-300"></span>
-            <span class="hamburger-line w-3 h-[1.5px] bg-gray-400 rounded-full transition-all duration-300"></span>
+          <button id="mobile-menu-btn" class="sm:hidden flex flex-col justify-center items-center w-8 h-8 gap-[5px] rounded-lg hover:bg-white/[0.06] transition-colors" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
+            <span class="hamburger-line w-4 h-[1.5px] bg-gray-400 rounded-full transition-all duration-300 origin-center"></span>
+            <span class="hamburger-line w-4 h-[1.5px] bg-gray-400 rounded-full transition-all duration-300 origin-center"></span>
+            <span class="hamburger-line w-3 h-[1.5px] bg-gray-400 rounded-full transition-all duration-300 origin-center"></span>
           </button>
         </div>
       </div>
     </div>
-    <div id="mobile-menu" class="mobile-menu sm:hidden glass-mobile border-t border-white/[0.06]">
+    <div id="mobile-menu" class="mobile-menu sm:hidden glass-mobile border-t border-white/[0.06]" role="menu">
       <div class="max-w-5xl mx-auto px-5 py-5 flex flex-col gap-1">
-        <a href="#features" class="mobile-nav-link text-sm text-gray-400 hover:text-white px-4 py-3 rounded-xl hover:bg-white/[0.04] transition-all">Features</a>
-        <a href="#demo" class="mobile-nav-link text-sm text-gray-400 hover:text-white px-4 py-3 rounded-xl hover:bg-white/[0.04] transition-all">Demo</a>
-        <a href="#how-it-works" class="mobile-nav-link text-sm text-gray-400 hover:text-white px-4 py-3 rounded-xl hover:bg-white/[0.04] transition-all">Setup</a>
-        <a href="#faq" class="mobile-nav-link text-sm text-gray-400 hover:text-white px-4 py-3 rounded-xl hover:bg-white/[0.04] transition-all">FAQ</a>
+        <a href="#features" class="mobile-nav-link text-sm text-gray-400 hover:text-white px-4 py-3 rounded-xl hover:bg-white/[0.04] transition-all" role="menuitem">Features</a>
+        <a href="#demo" class="mobile-nav-link text-sm text-gray-400 hover:text-white px-4 py-3 rounded-xl hover:bg-white/[0.04] transition-all" role="menuitem">Demo</a>
+        <a href="#how-it-works" class="mobile-nav-link text-sm text-gray-400 hover:text-white px-4 py-3 rounded-xl hover:bg-white/[0.04] transition-all" role="menuitem">Setup</a>
+        <a href="#faq" class="mobile-nav-link text-sm text-gray-400 hover:text-white px-4 py-3 rounded-xl hover:bg-white/[0.04] transition-all" role="menuitem">FAQ</a>
       </div>
     </div>
   </nav>
 
+  <main id="main-content">
   <!-- Hero -->
-  <section class="animated-gradient-bg relative pt-28 pb-36 sm:pt-40 sm:pb-48 px-5 overflow-hidden">
-    <div class="absolute top-20 -left-20 w-[500px] h-[500px] bg-accent-400/[0.04] rounded-full blur-[120px]" style="animation:float-1 25s ease-in-out infinite"></div>
-    <div class="absolute bottom-0 -right-20 w-[600px] h-[600px] bg-blue-500/[0.03] rounded-full blur-[120px]" style="animation:float-2 30s ease-in-out infinite"></div>
-    <div class="dot-grid absolute inset-0 opacity-60"></div>
+  <section class="animated-gradient-bg relative pt-28 pb-36 sm:pt-40 sm:pb-48 px-5 overflow-hidden" aria-label="Hero">
+    <div class="absolute top-20 -left-20 w-[500px] h-[500px] bg-accent-400/[0.04] rounded-full blur-[120px]" style="animation:float-1 25s ease-in-out infinite" aria-hidden="true"></div>
+    <div class="absolute bottom-0 -right-20 w-[600px] h-[600px] bg-blue-500/[0.03] rounded-full blur-[120px]" style="animation:float-2 30s ease-in-out infinite" aria-hidden="true"></div>
+    <div class="dot-grid absolute inset-0 opacity-60" aria-hidden="true"></div>
 
     <div class="max-w-5xl mx-auto flex flex-col lg:flex-row items-center gap-20 relative z-10">
       <div class="flex-1 text-center lg:text-left">
         <div class="inline-flex items-center gap-2 bg-amber-500/[0.08] border border-amber-400/[0.15] text-amber-300 text-xs font-medium px-3.5 py-1.5 rounded-full mb-8 badge-glow">
-          <span class="w-1.5 h-1.5 bg-amber-400 rounded-full rec-pulse"></span>
+          <span class="w-1.5 h-1.5 bg-amber-400 rounded-full rec-pulse" aria-hidden="true"></span>
           Now available for free
         </div>
         <h1 class="text-[2.75rem] sm:text-[3.5rem] lg:text-[4rem] font-extrabold leading-[1.1] mb-6 tracking-[-0.03em]">
           話すだけで、<br>
-          <span class="gradient-text" id="hero-typed"></span>
-          <span class="typing-cursor text-accent-300 font-light">|</span>
+          <span class="gradient-text" id="hero-typed" aria-label="テキストに。"></span>
+          <span class="typing-cursor text-accent-300 font-light" aria-hidden="true">|</span>
         </h1>
         <p class="text-base sm:text-lg text-gray-400 mb-10 leading-relaxed max-w-lg mx-auto lg:mx-0 font-light">
           AIが音声をリアルタイムで文字起こし。<br class="hidden sm:inline">
@@ -255,42 +294,42 @@
         </p>
         <div class="flex flex-col sm:flex-row gap-3.5 items-center lg:items-start justify-center lg:justify-start">
           <a href="https://github.com/MasatoshiToku/dictate/releases/tag/v1.0.0" target="_blank" class="btn-primary inline-flex items-center gap-2.5 bg-gradient-to-r from-accent-500 to-blue-500 text-white text-sm font-semibold px-7 py-3.5 rounded-xl shadow-lg shadow-accent-500/20">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
             Download for macOS
           </a>
           <a href="#how-it-works" class="btn-outline inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm font-medium px-6 py-3.5 rounded-xl transition-colors duration-300">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z"/></svg>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z"/></svg>
             How it works
           </a>
         </div>
         <!-- Keyboard shortcut visual -->
         <div class="mt-8 flex items-center gap-3 justify-center lg:justify-start">
-          <div class="flex items-center gap-1.5 bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-2.5">
-            <kbd class="key-animate inline-flex items-center justify-center w-10 h-8 bg-surface-3 border border-white/[0.08] rounded-lg text-[11px] font-mono text-gray-400 shadow-[0_3px_0_0_rgba(255,255,255,0.08)]">&#x2325; Opt</kbd>
-            <span class="text-gray-600 text-xs mx-1">+</span>
-            <kbd class="key-animate-delay inline-flex items-center justify-center w-14 h-8 bg-surface-3 border border-white/[0.08] rounded-lg text-[11px] font-mono text-gray-400 shadow-[0_3px_0_0_rgba(255,255,255,0.08)]">Space</kbd>
-            <span class="text-gray-600 text-[11px] ml-2.5">to start dictating</span>
+          <div class="flex items-center gap-1.5 bg-white/[0.02] border border-white/[0.06] rounded-xl px-3 sm:px-4 py-2.5">
+            <kbd class="key-animate inline-flex items-center justify-center w-8 sm:w-10 h-7 sm:h-8 bg-surface-3 border border-white/[0.08] rounded-lg text-[10px] sm:text-[11px] font-mono text-gray-400 shadow-[0_3px_0_0_rgba(255,255,255,0.08)]">&#x2325; Opt</kbd>
+            <span class="text-gray-600 text-xs mx-0.5 sm:mx-1">+</span>
+            <kbd class="key-animate-delay inline-flex items-center justify-center w-11 sm:w-14 h-7 sm:h-8 bg-surface-3 border border-white/[0.08] rounded-lg text-[10px] sm:text-[11px] font-mono text-gray-400 shadow-[0_3px_0_0_rgba(255,255,255,0.08)]">Space</kbd>
+            <span class="text-gray-600 text-[10px] sm:text-[11px] ml-1.5 sm:ml-2.5 whitespace-nowrap">to start dictating</span>
           </div>
         </div>
         <div class="mt-5 flex items-center gap-4 justify-center lg:justify-start text-xs text-gray-600">
           <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
             macOS
           </span>
-          <span class="w-px h-3 bg-gray-800"></span>
+          <span class="w-px h-3 bg-gray-800" aria-hidden="true"></span>
           <span>Gemini AI</span>
-          <span class="w-px h-3 bg-gray-800"></span>
+          <span class="w-px h-3 bg-gray-800" aria-hidden="true"></span>
           <span>&lt; 50MB</span>
         </div>
       </div>
 
       <!-- Hero visual - Realistic macOS floating panel -->
-      <div class="flex-1 flex justify-center">
+      <div class="flex-1 flex justify-center" aria-hidden="true">
         <div class="relative hero-panel-3d">
           <div class="absolute -inset-10 rounded-3xl">
             <div class="absolute inset-0 bg-gradient-to-br from-accent-400/[0.1] to-blue-500/[0.1] rounded-3xl blur-3xl"></div>
           </div>
-          <div class="relative w-[340px] sm:w-[400px] rounded-2xl bg-surface-2/90 border border-white/[0.08] shadow-2xl shadow-black/50 overflow-hidden" style="backdrop-filter:blur(20px)">
+          <div class="relative w-[300px] sm:w-[400px] rounded-2xl bg-surface-2/90 border border-white/[0.08] shadow-2xl shadow-black/50 overflow-hidden" style="backdrop-filter:blur(20px)">
             <div class="flex items-center gap-2 px-4 py-3 bg-white/[0.02] border-b border-white/[0.04]">
               <div class="flex gap-[7px]">
                 <div class="w-[11px] h-[11px] rounded-full bg-[#ff5f57]/70"></div>
@@ -324,7 +363,7 @@
       </div>
     </div>
 
-    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 scroll-indicator">
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 scroll-indicator" aria-hidden="true">
       <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"/>
       </svg>
@@ -332,32 +371,32 @@
   </section>
 
   <!-- Trust indicators -->
-  <section class="py-6 px-5 border-b border-white/[0.03] bg-surface-0">
+  <section class="py-6 px-5 border-b border-white/[0.03] bg-surface-0" aria-label="Trust indicators">
     <div class="max-w-3xl mx-auto flex flex-wrap justify-center gap-8 sm:gap-12">
       <div class="flex items-center gap-2 text-gray-500 text-xs">
-        <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
         macOS Native
       </div>
       <div class="flex items-center gap-2 text-gray-500 text-xs">
-        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
         Powered by Gemini
       </div>
       <div class="flex items-center gap-2 text-xs" style="color:rgba(74,222,128,0.7)">
-        <svg class="w-4 h-4" style="color:rgba(74,222,128,0.5)" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+        <svg class="w-4 h-4" style="color:rgba(74,222,128,0.5)" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
         Private by Design
       </div>
       <div class="flex items-center gap-2 text-gray-500 text-xs">
-        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
         <span class="trust-counter" data-target="3">3</span>-step setup
       </div>
     </div>
   </section>
 
   <!-- Features -->
-  <section id="features" class="py-28 sm:py-36 px-5 relative section-glow">
-    <div class="absolute inset-0 bg-gradient-to-b from-surface-0 via-surface-1/80 to-surface-0"></div>
-    <div class="dot-grid absolute inset-0 opacity-30"></div>
-    <div class="section-watermark">FEATURES</div>
+  <section id="features" class="py-28 sm:py-36 px-5 relative section-glow" aria-label="Features">
+    <div class="absolute inset-0 bg-gradient-to-b from-surface-0 via-surface-1/80 to-surface-0" aria-hidden="true"></div>
+    <div class="dot-grid absolute inset-0 opacity-30" aria-hidden="true"></div>
+    <div class="section-watermark" aria-hidden="true">FEATURES</div>
     <div class="max-w-5xl mx-auto relative z-10">
       <div class="text-center mb-16 reveal">
         <p class="text-accent-300 text-xs font-semibold tracking-[0.2em] uppercase mb-4">Features</p>
@@ -366,10 +405,10 @@
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div class="feature-card glass rounded-2xl p-7 border border-white/[0.04] sm:col-span-2 lg:col-span-2 reveal reveal-delay-1">
-          <div class="icon-glow"></div>
+          <div class="icon-glow" aria-hidden="true"></div>
           <div class="flex flex-col sm:flex-row gap-6 relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-400/15 to-blue-500/15 border border-accent-400/10 flex items-center justify-center flex-shrink-0">
-              <svg class="w-6 h-6 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5a3 3 0 00-3 3v6a3 3 0 006 0v-6a3 3 0 00-3-3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 10.5a7 7 0 01-14 0"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 17.5v3m-4 0h8"/></svg>
+              <svg class="w-6 h-6 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5a3 3 0 00-3 3v6a3 3 0 006 0v-6a3 3 0 00-3-3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 10.5a7 7 0 01-14 0"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 17.5v3m-4 0h8"/></svg>
             </div>
             <div>
               <h3 class="text-base font-semibold mb-2 text-gray-100">AI文字起こし</h3>
@@ -378,40 +417,40 @@
           </div>
         </div>
         <div class="feature-card glass rounded-2xl p-7 border border-white/[0.04] reveal reveal-delay-2">
-          <div class="icon-glow"></div>
+          <div class="icon-glow" aria-hidden="true"></div>
           <div class="relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-400/15 to-blue-500/15 border border-accent-400/10 flex items-center justify-center mb-5">
-              <svg class="w-6 h-6 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+              <svg class="w-6 h-6 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
             </div>
             <h3 class="text-base font-semibold mb-2 text-gray-100">テキスト整形</h3>
             <p class="text-gray-500 text-sm leading-relaxed">「えっと」「あの」等を自動除去。句読点の挿入も自動です。</p>
           </div>
         </div>
         <div class="feature-card glass rounded-2xl p-7 border border-white/[0.04] reveal reveal-delay-3">
-          <div class="icon-glow"></div>
+          <div class="icon-glow" aria-hidden="true"></div>
           <div class="relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-400/15 to-blue-500/15 border border-accent-400/10 flex items-center justify-center mb-5">
-              <svg class="w-6 h-6 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+              <svg class="w-6 h-6 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
             </div>
             <h3 class="text-base font-semibold mb-2 text-gray-100">直接入力</h3>
             <p class="text-gray-500 text-sm leading-relaxed">アクティブなアプリに自動タイプ入力。コピペ不要です。</p>
           </div>
         </div>
         <div class="feature-card glass rounded-2xl p-7 border border-white/[0.04] reveal reveal-delay-4">
-          <div class="icon-glow"></div>
+          <div class="icon-glow" aria-hidden="true"></div>
           <div class="relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-400/15 to-blue-500/15 border border-accent-400/10 flex items-center justify-center mb-5">
-              <svg class="w-6 h-6 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+              <svg class="w-6 h-6 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
             </div>
             <h3 class="text-base font-semibold mb-2 text-gray-100">グローバルショートカット</h3>
             <p class="text-gray-500 text-sm leading-relaxed">Option+Spaceでどのアプリからでも即起動。ワークフローを中断しません。</p>
           </div>
         </div>
         <div class="feature-card glass rounded-2xl p-7 border border-white/[0.04] sm:col-span-2 reveal reveal-delay-5">
-          <div class="icon-glow"></div>
+          <div class="icon-glow" aria-hidden="true"></div>
           <div class="flex flex-col sm:flex-row sm:items-start gap-5 relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/15 to-cyan-500/15 border border-blue-500/10 flex items-center justify-center flex-shrink-0">
-              <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
             <div>
               <div class="flex items-center gap-2.5 mb-2">
@@ -427,9 +466,9 @@
   </section>
 
   <!-- Demo -->
-  <section id="demo" class="py-28 sm:py-36 px-5 section-glow relative">
-    <div class="radial-grid absolute inset-0"></div>
-    <div class="section-watermark">DEMO</div>
+  <section id="demo" class="py-28 sm:py-36 px-5 section-glow relative" aria-label="Demo">
+    <div class="radial-grid absolute inset-0" aria-hidden="true"></div>
+    <div class="section-watermark" aria-hidden="true">DEMO</div>
     <div class="max-w-4xl mx-auto relative z-10">
       <div class="text-center mb-14 reveal">
         <p class="text-accent-300 text-xs font-semibold tracking-[0.2em] uppercase mb-4">Demo</p>
@@ -437,12 +476,12 @@
         <p class="text-gray-500 text-sm">タブを切り替えて、さまざまな変換例をご覧ください</p>
       </div>
       <div class="reveal">
-        <div class="flex justify-center gap-2 mb-8">
-          <button class="demo-tab active text-xs font-medium px-4 py-2 border border-transparent" data-tab="0">Meeting</button>
-          <button class="demo-tab text-xs font-medium px-4 py-2 border border-transparent" data-tab="1">Email</button>
-          <button class="demo-tab text-xs font-medium px-4 py-2 border border-transparent" data-tab="2">Minutes</button>
+        <div class="flex justify-center gap-2 mb-8" role="tablist" aria-label="Demo examples">
+          <button class="demo-tab active text-xs font-medium px-4 py-2 border border-transparent" data-tab="0" role="tab" aria-selected="true" aria-controls="demo-panel" id="tab-0">Meeting</button>
+          <button class="demo-tab text-xs font-medium px-4 py-2 border border-transparent" data-tab="1" role="tab" aria-selected="false" aria-controls="demo-panel" id="tab-1">Email</button>
+          <button class="demo-tab text-xs font-medium px-4 py-2 border border-transparent" data-tab="2" role="tab" aria-selected="false" aria-controls="demo-panel" id="tab-2">Minutes</button>
         </div>
-        <div class="mac-window glass border border-white/[0.06] shadow-2xl shadow-black/30">
+        <div class="mac-window glass border border-white/[0.06] shadow-2xl shadow-black/30" id="demo-panel" role="tabpanel" aria-labelledby="tab-0">
           <div class="mac-titlebar border-b border-white/[0.04]">
             <div class="mac-dot bg-[#ff5f57]/80"></div>
             <div class="mac-dot bg-[#febc2e]/80"></div>
@@ -453,24 +492,24 @@
             <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 md:gap-6 items-start">
               <div>
                 <div class="flex items-center gap-2 mb-3">
-                  <svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-14 0m14 0a7 7 0 00-14 0m14 0v1a7 7 0 01-14 0v-1"/></svg>
+                  <svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-14 0m14 0a7 7 0 00-14 0m14 0v1a7 7 0 01-14 0v-1"/></svg>
                   <span class="text-[10px] font-semibold text-gray-600 tracking-[0.15em] uppercase">Voice Input</span>
                 </div>
                 <div class="bg-white/[0.02] rounded-xl p-4 min-h-[120px] border border-white/[0.04]">
                   <p class="text-gray-500 text-sm leading-relaxed font-mono" id="demo-before"></p>
                 </div>
               </div>
-              <div class="hidden md:flex items-center justify-center pt-10">
+              <div class="hidden md:flex items-center justify-center pt-10" aria-hidden="true">
                 <div class="arrow-pulse">
                   <svg class="w-5 h-5 text-accent-300/60" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
                 </div>
               </div>
-              <div class="flex md:hidden items-center justify-center py-1">
+              <div class="flex md:hidden items-center justify-center py-1" aria-hidden="true">
                 <svg class="w-4 h-4 text-accent-300/60 rotate-90 arrow-pulse" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
               </div>
               <div>
                 <div class="flex items-center gap-2 mb-3">
-                  <svg class="w-3.5 h-3.5 text-accent-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                  <svg class="w-3.5 h-3.5 text-accent-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
                   <span class="text-[10px] font-semibold text-accent-300 tracking-[0.15em] uppercase">AI Output</span>
                 </div>
                 <div class="bg-accent-400/[0.03] rounded-xl p-4 min-h-[120px] border border-accent-400/[0.06]">
@@ -485,10 +524,10 @@
   </section>
 
   <!-- How it works -->
-  <section id="how-it-works" class="py-28 sm:py-36 px-5 relative section-glow">
-    <div class="absolute inset-0 bg-gradient-to-b from-surface-0 via-surface-1/80 to-surface-0"></div>
-    <div class="dot-grid absolute inset-0 opacity-20"></div>
-    <div class="section-watermark">SETUP</div>
+  <section id="how-it-works" class="py-28 sm:py-36 px-5 relative section-glow" aria-label="Setup steps">
+    <div class="absolute inset-0 bg-gradient-to-b from-surface-0 via-surface-1/80 to-surface-0" aria-hidden="true"></div>
+    <div class="dot-grid absolute inset-0 opacity-20" aria-hidden="true"></div>
+    <div class="section-watermark" aria-hidden="true">SETUP</div>
     <div class="max-w-5xl mx-auto relative z-10">
       <div class="text-center mb-16 reveal">
         <p class="text-accent-300 text-xs font-semibold tracking-[0.2em] uppercase mb-4">Setup</p>
@@ -496,11 +535,11 @@
         <p class="text-gray-500 text-sm">難しい設定は一切不要です</p>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 relative">
-        <div class="hidden sm:block absolute top-10 left-[calc(16.67%+2rem)] right-[calc(16.67%+2rem)] h-px step-connector" id="step-connector"></div>
+        <div class="hidden sm:block absolute top-10 left-[calc(16.67%+2rem)] right-[calc(16.67%+2rem)] h-px step-connector" id="step-connector" aria-hidden="true"></div>
         <div class="text-center reveal reveal-delay-1">
           <div class="relative inline-flex">
             <div class="w-20 h-20 rounded-2xl bg-surface-2 border border-white/[0.06] flex items-center justify-center mx-auto mb-6 shadow-lg shadow-black/20">
-              <svg class="w-8 h-8 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+              <svg class="w-8 h-8 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
             </div>
             <span class="absolute -top-1.5 -right-1.5 w-6 h-6 bg-accent-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md shadow-accent-500/30">1</span>
           </div>
@@ -510,7 +549,7 @@
         <div class="text-center reveal reveal-delay-2">
           <div class="relative inline-flex">
             <div class="w-20 h-20 rounded-2xl bg-surface-2 border border-white/[0.06] flex items-center justify-center mx-auto mb-6 shadow-lg shadow-black/20">
-              <svg class="w-8 h-8 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
+              <svg class="w-8 h-8 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
             </div>
             <span class="absolute -top-1.5 -right-1.5 w-6 h-6 bg-accent-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md shadow-accent-500/30">2</span>
           </div>
@@ -520,7 +559,7 @@
         <div class="text-center reveal reveal-delay-3">
           <div class="relative inline-flex">
             <div class="w-20 h-20 rounded-2xl bg-surface-2 border border-white/[0.06] flex items-center justify-center mx-auto mb-6 shadow-lg shadow-black/20">
-              <svg class="w-8 h-8 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg>
+              <svg class="w-8 h-8 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg>
             </div>
             <span class="absolute -top-1.5 -right-1.5 w-6 h-6 bg-accent-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md shadow-accent-500/30">3</span>
           </div>
@@ -532,9 +571,9 @@
   </section>
 
   <!-- Setup Guide -->
-  <section id="setup" class="py-28 sm:py-36 px-5 section-glow relative">
-    <div class="radial-grid absolute inset-0"></div>
-    <div class="section-watermark">GUIDE</div>
+  <section id="setup" class="py-28 sm:py-36 px-5 section-glow relative" aria-label="Setup guide">
+    <div class="radial-grid absolute inset-0" aria-hidden="true"></div>
+    <div class="section-watermark" aria-hidden="true">GUIDE</div>
     <div class="max-w-2xl mx-auto relative z-10">
       <div class="text-center mb-14 reveal">
         <p class="text-accent-300 text-xs font-semibold tracking-[0.2em] uppercase mb-4">Guide</p>
@@ -544,7 +583,7 @@
       <div class="glass rounded-2xl p-7 sm:p-10 border border-white/[0.04] reveal">
         <div class="flex items-start gap-3.5 mb-8 bg-accent-400/[0.04] border border-accent-400/[0.08] rounded-xl p-4">
           <div class="w-8 h-8 rounded-lg bg-accent-400/[0.1] flex items-center justify-center flex-shrink-0 mt-0.5">
-            <svg class="w-4 h-4 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+            <svg class="w-4 h-4 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
           </div>
           <p class="text-gray-400 text-sm leading-relaxed">
             DictateはGoogle Gemini AIで音声を文字起こしします。APIキーは<strong class="text-gray-200">無料で取得</strong>できます。
@@ -556,7 +595,7 @@
               <span class="w-7 h-7 bg-accent-500 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold text-white shadow-sm mt-0.5">1</span>
               <div class="flex-1"><div class="flex items-center justify-between">
                 <h4 class="font-semibold text-sm text-gray-200">Google AI Studioにアクセス</h4>
-                <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </div></div>
             </summary>
             <div class="faq-body ml-[2.85rem] mt-1.5"><div>
@@ -569,7 +608,7 @@
               <span class="w-7 h-7 bg-accent-500 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold text-white shadow-sm mt-0.5">2</span>
               <div class="flex-1"><div class="flex items-center justify-between">
                 <h4 class="font-semibold text-sm text-gray-200">APIキーを作成</h4>
-                <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </div></div>
             </summary>
             <div class="faq-body ml-[2.85rem] mt-1.5"><div>
@@ -582,7 +621,7 @@
               <span class="w-7 h-7 bg-accent-500 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold text-white shadow-sm mt-0.5">3</span>
               <div class="flex-1"><div class="flex items-center justify-between">
                 <h4 class="font-semibold text-sm text-gray-200">Dictateに設定</h4>
-                <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </div></div>
             </summary>
             <div class="faq-body ml-[2.85rem] mt-1.5"><div>
@@ -598,7 +637,7 @@
                   <h4 class="font-semibold text-sm text-gray-200">リアルタイムプレビュー</h4>
                   <span class="text-[10px] font-medium text-blue-400 bg-blue-500/[0.08] border border-blue-500/[0.12] px-1.5 py-0.5 rounded-full">Optional</span>
                 </div>
-                <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </div></div>
             </summary>
             <div class="faq-body ml-[2.85rem] mt-1.5"><div>
@@ -614,10 +653,10 @@
   </section>
 
   <!-- FAQ -->
-  <section id="faq" class="py-28 sm:py-36 px-5 relative section-glow">
-    <div class="absolute inset-0 bg-gradient-to-b from-surface-0 via-surface-1/80 to-surface-0"></div>
-    <div class="dot-grid absolute inset-0 opacity-20"></div>
-    <div class="section-watermark">FAQ</div>
+  <section id="faq" class="py-28 sm:py-36 px-5 relative section-glow" aria-label="FAQ">
+    <div class="absolute inset-0 bg-gradient-to-b from-surface-0 via-surface-1/80 to-surface-0" aria-hidden="true"></div>
+    <div class="dot-grid absolute inset-0 opacity-20" aria-hidden="true"></div>
+    <div class="section-watermark" aria-hidden="true">FAQ</div>
     <div class="max-w-2xl mx-auto relative z-10">
       <div class="text-center mb-14 reveal">
         <p class="text-accent-300 text-xs font-semibold tracking-[0.2em] uppercase mb-4">FAQ</p>
@@ -627,35 +666,35 @@
         <details class="faq-item glass rounded-xl border border-white/[0.04] group reveal reveal-delay-1">
           <summary class="p-5 cursor-pointer text-sm font-semibold flex justify-between items-center gap-4 text-gray-200">
             Gemini APIキーはどこで取得できますか？
-            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
           <div class="faq-body"><div class="px-5 pb-5 text-gray-500 text-sm leading-relaxed"><a href="https://aistudio.google.com/apikey" target="_blank" class="text-accent-300 hover:underline">Google AI Studio</a>で無料で取得できます。</div></div>
         </details>
         <details class="faq-item glass rounded-xl border border-white/[0.04] group reveal reveal-delay-2">
           <summary class="p-5 cursor-pointer text-sm font-semibold flex justify-between items-center gap-4 text-gray-200">
             APIキーの利用料金はかかりますか？
-            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
           <div class="faq-body"><div class="px-5 pb-5 text-gray-500 text-sm leading-relaxed">無料枠があり、個人利用であれば十分です。大量使用時はGoogle側の従量課金が発生する場合があります。</div></div>
         </details>
         <details class="faq-item glass rounded-xl border border-white/[0.04] group reveal reveal-delay-3">
           <summary class="p-5 cursor-pointer text-sm font-semibold flex justify-between items-center gap-4 text-gray-200">
             対応OSは？
-            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
           <div class="faq-body"><div class="px-5 pb-5 text-gray-500 text-sm leading-relaxed">現在macOSのみ。Windows/Linux版は検討中です。</div></div>
         </details>
         <details class="faq-item glass rounded-xl border border-white/[0.04] group reveal reveal-delay-4">
           <summary class="p-5 cursor-pointer text-sm font-semibold flex justify-between items-center gap-4 text-gray-200">
             音声データはサーバーに保存されますか？
-            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
           <div class="faq-body"><div class="px-5 pb-5 text-gray-500 text-sm leading-relaxed">いいえ。音声はMacからGemini APIへ直接送信され、サーバーを経由しません。</div></div>
         </details>
         <details class="faq-item glass rounded-xl border border-white/[0.04] group reveal">
           <summary class="p-5 cursor-pointer text-sm font-semibold flex justify-between items-center gap-4 text-gray-200">
             Deepgram APIキーは必要ですか？
-            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
           <div class="faq-body"><div class="px-5 pb-5 text-gray-500 text-sm leading-relaxed">オプションです。リアルタイムプレビューが不要なら設定不要です。</div></div>
         </details>
@@ -664,16 +703,16 @@
   </section>
 
   <!-- Download CTA -->
-  <section id="download" class="py-28 sm:py-36 px-5 section-glow relative">
-    <div class="radial-grid absolute inset-0"></div>
+  <section id="download" class="py-28 sm:py-36 px-5 section-glow relative" aria-label="Download">
+    <div class="radial-grid absolute inset-0" aria-hidden="true"></div>
     <div class="max-w-xl mx-auto text-center reveal relative z-10">
       <div class="relative">
-        <div class="absolute -inset-8 bg-gradient-to-br from-accent-400/[0.06] to-blue-500/[0.06] rounded-[2rem] blur-2xl"></div>
+        <div class="absolute -inset-8 bg-gradient-to-br from-accent-400/[0.06] to-blue-500/[0.06] rounded-[2rem] blur-2xl" aria-hidden="true"></div>
         <div class="relative glass rounded-3xl p-10 sm:p-14 border border-white/[0.06]">
           <!-- App icon -->
           <div class="flex justify-center mb-8">
             <div class="w-20 h-20 rounded-[22px] bg-gradient-to-br from-accent-500 via-accent-400 to-blue-500 flex items-center justify-center app-icon-glow">
-              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5a3 3 0 00-3 3v6a3 3 0 006 0v-6a3 3 0 00-3-3z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 10.5a7 7 0 01-14 0"/>
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.5v3m-4 0h8"/>
@@ -681,13 +720,13 @@
             </div>
           </div>
           <div class="inline-flex items-center gap-2 bg-amber-500/[0.08] border border-amber-400/[0.15] text-amber-300 text-xs font-medium px-3.5 py-1.5 rounded-full mb-6 badge-glow">
-            <span class="w-1.5 h-1.5 bg-amber-400 rounded-full rec-pulse"></span>
+            <span class="w-1.5 h-1.5 bg-amber-400 rounded-full rec-pulse" aria-hidden="true"></span>
             Free during early access
           </div>
           <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em] mb-3">Dictateをダウンロード</h2>
           <p class="text-gray-500 text-sm mb-10 max-w-sm mx-auto leading-relaxed">APIキーを用意するだけですぐに使えます。無料期間中にぜひお試しください。</p>
           <a href="https://github.com/MasatoshiToku/dictate/releases/tag/v1.0.0" target="_blank" class="btn-primary inline-flex items-center gap-2.5 bg-gradient-to-r from-accent-500 to-blue-500 text-white text-sm font-bold px-9 py-4 rounded-xl shadow-xl shadow-accent-500/25 mb-10">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
             Download DMG
             <span class="text-xs font-normal text-white/60">v1.0.0</span>
           </a>
@@ -695,9 +734,9 @@
             <div>
               <h3 class="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.15em] mb-3.5">Requirements</h3>
               <ul class="text-sm text-gray-500 space-y-2">
-                <li class="flex items-center gap-2"><span class="w-1 h-1 bg-gray-700 rounded-full"></span>macOS</li>
-                <li class="flex items-center gap-2"><span class="w-1 h-1 bg-gray-700 rounded-full"></span>マイク・アクセシビリティ権限</li>
-                <li class="flex items-center gap-2"><span class="w-1 h-1 bg-gray-700 rounded-full"></span>Gemini APIキー（<a href="https://aistudio.google.com/apikey" target="_blank" class="text-accent-300/60 hover:text-accent-300 underline underline-offset-2">無料</a>）</li>
+                <li class="flex items-center gap-2"><span class="w-1 h-1 bg-gray-700 rounded-full" aria-hidden="true"></span>macOS</li>
+                <li class="flex items-center gap-2"><span class="w-1 h-1 bg-gray-700 rounded-full" aria-hidden="true"></span>マイク・アクセシビリティ権限</li>
+                <li class="flex items-center gap-2"><span class="w-1 h-1 bg-gray-700 rounded-full" aria-hidden="true"></span>Gemini APIキー（<a href="https://aistudio.google.com/apikey" target="_blank" class="text-accent-300/60 hover:text-accent-300 underline underline-offset-2">無料</a>）</li>
               </ul>
             </div>
             <div>
@@ -714,6 +753,7 @@
       </div>
     </div>
   </section>
+  </main>
 
   <!-- Footer -->
   <footer class="py-10 px-5" style="border-top: 1px solid transparent; border-image: linear-gradient(90deg, transparent, rgba(139,92,246,0.2), rgba(96,165,250,0.2), transparent) 1;">
@@ -727,7 +767,7 @@
           <a href="/privacy.html" class="hover:text-gray-400 transition-colors">Privacy</a>
           <a href="/terms.html" class="hover:text-gray-400 transition-colors">Terms</a>
           <a href="https://github.com/MasatoshiToku/dictate" target="_blank" class="hover:text-gray-400 transition-colors flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
             GitHub
           </a>
         </div>
@@ -737,38 +777,297 @@
   </footer>
 
   <script>
-    /* Scroll reveal with scale */
-    (function(){var o=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)x.target.classList.add('visible')})},{threshold:.08,rootMargin:'0px 0px -30px 0px'});document.querySelectorAll('.reveal').forEach(function(el){o.observe(el)})})();
+    /* Scroll reveal - unobserve after triggering for performance */
+    (function(){
+      var o = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            entry.target.classList.add('visible');
+            o.unobserve(entry.target);
+          }
+        });
+      },{threshold:.08, rootMargin:'0px 0px -30px 0px'});
+      document.querySelectorAll('.reveal').forEach(function(el){ o.observe(el); });
+    })();
 
-    /* Smooth scroll for anchor links */
-    document.querySelectorAll('a[href^="#"]').forEach(function(l){l.addEventListener('click',function(e){var t=document.querySelector(l.getAttribute('href'));if(t){e.preventDefault();window.scrollTo({top:t.getBoundingClientRect().top+window.pageYOffset-60,behavior:'smooth'});var mm=document.getElementById('mobile-menu');if(mm)mm.classList.remove('open')}})});
+    /* Smooth scroll for anchor links - also close mobile menu */
+    document.querySelectorAll('a[href^="#"]').forEach(function(link){
+      link.addEventListener('click', function(e){
+        var target = document.querySelector(link.getAttribute('href'));
+        if(target){
+          e.preventDefault();
+          window.scrollTo({top: target.getBoundingClientRect().top + window.pageYOffset - 60, behavior:'smooth'});
+          var mm = document.getElementById('mobile-menu');
+          var btn = document.getElementById('mobile-menu-btn');
+          if(mm && mm.classList.contains('open')){
+            mm.classList.remove('open');
+            if(btn){
+              btn.setAttribute('aria-expanded','false');
+              var lines = btn.querySelectorAll('.hamburger-line');
+              lines[0].style.transform = '';
+              lines[1].style.opacity = '';
+              lines[2].style.transform = '';
+              lines[2].style.width = '0.75rem';
+            }
+          }
+        }
+      });
+    });
 
-    /* Nav scroll + active section */
-    (function(){var n=document.getElementById('main-nav'),ls=document.querySelectorAll('.nav-link'),ss=['features','demo','how-it-works','faq'].map(function(id){return document.getElementById(id)}).filter(Boolean);window.addEventListener('scroll',function(){n.classList.toggle('nav-scrolled',window.scrollY>30);var p=window.scrollY+120,a=-1;ss.forEach(function(s,i){if(s.offsetTop<=p)a=i});ls.forEach(function(l,i){l.classList.toggle('active',i===a)})},{passive:true})})();
+    /* Nav scroll state + active section tracking */
+    (function(){
+      var nav = document.getElementById('main-nav');
+      var links = document.querySelectorAll('.nav-link');
+      var sections = ['features','demo','how-it-works','faq'].map(function(id){ return document.getElementById(id); }).filter(Boolean);
+      window.addEventListener('scroll', function(){
+        nav.classList.toggle('nav-scrolled', window.scrollY > 30);
+        var scrollPos = window.scrollY + 120;
+        var activeIdx = -1;
+        sections.forEach(function(section, i){ if(section.offsetTop <= scrollPos) activeIdx = i; });
+        links.forEach(function(link, i){ link.classList.toggle('active', i === activeIdx); });
+      },{passive:true});
+    })();
 
     /* Hero typing animation */
-    (function(){var p=['テキストに。','メールに。','議事録に。','チャットに。'],el=document.getElementById('hero-typed');if(!el)return;var pi=0,ci=0,d=false;function t(){var c=p[pi];if(!d){el.textContent=c.substring(0,ci+1);ci++;if(ci===c.length){d=true;setTimeout(t,2200);return}setTimeout(t,100)}else{el.textContent=c.substring(0,ci-1);ci--;if(ci===0){d=false;pi=(pi+1)%p.length;setTimeout(t,500);return}setTimeout(t,50)}}setTimeout(t,1000)})();
+    (function(){
+      var phrases = ['テキストに。','メールに。','議事録に。','チャットに。'];
+      var el = document.getElementById('hero-typed');
+      if(!el) return;
+      var phraseIdx = 0, charIdx = 0, deleting = false;
+      function tick(){
+        var current = phrases[phraseIdx];
+        if(!deleting){
+          el.textContent = current.substring(0, charIdx + 1);
+          charIdx++;
+          if(charIdx === current.length){ deleting = true; setTimeout(tick, 2200); return; }
+          setTimeout(tick, 100);
+        } else {
+          el.textContent = current.substring(0, charIdx - 1);
+          charIdx--;
+          if(charIdx === 0){ deleting = false; phraseIdx = (phraseIdx + 1) % phrases.length; setTimeout(tick, 500); return; }
+          setTimeout(tick, 50);
+        }
+      }
+      setTimeout(tick, 1000);
+    })();
 
     /* Hero audio bars */
-    (function(){var c=document.getElementById('hero-bars');if(!c)return;for(var i=0;i<24;i++){var b=document.createElement('div'),h=260+(i/23)*40;b.className='rounded-full';b.style.cssText='width:2px;background:linear-gradient(to top,hsl('+h+',60%,55%),hsl('+(h+20)+',70%,65%));animation:audio-bar 1.4s ease-in-out infinite;animation-delay:'+(i*0.06)+'s;height:'+(15+Math.random()*55)+'%;opacity:0.6;';c.appendChild(b)}})();
+    (function(){
+      var container = document.getElementById('hero-bars');
+      if(!container) return;
+      for(var i = 0; i < 24; i++){
+        var bar = document.createElement('div');
+        var hue = 260 + (i / 23) * 40;
+        bar.className = 'rounded-full';
+        bar.style.cssText = 'width:2px;min-height:2px;background:linear-gradient(to top,hsl('+hue+',60%,55%),hsl('+(hue+20)+',70%,65%));animation:audio-bar 1.4s ease-in-out infinite;animation-delay:'+(i*0.06)+'s;height:'+(15+Math.random()*55)+'%;opacity:0.6;';
+        container.appendChild(bar);
+      }
+    })();
 
-    /* Hero floating panel dictation text */
-    (function(){var el=document.getElementById('hero-dictation-text');if(!el)return;var full='明日の会議は13時から、場所は会議室Aです。資料は各自持参でお願いします。';var idx=0;function typeChar(){if(idx<=full.length){el.textContent=full.substring(0,idx);idx++;setTimeout(typeChar,80+(Math.random()*40))}else{setTimeout(function(){idx=0;el.textContent='';setTimeout(typeChar,2000)},4000)}}setTimeout(typeChar,1500)})();
+    /* Hero floating panel dictation text with synced timer reset */
+    (function(){
+      var textEl = document.getElementById('hero-dictation-text');
+      var timerEl = document.getElementById('hero-timer');
+      if(!textEl) return;
+      var fullText = '明日の会議は13時から、場所は会議室Aです。資料は各自持参でお願いします。';
+      var charIdx = 0;
+      var seconds = 3;
+      var timerInterval = null;
 
-    /* Hero timer */
-    (function(){var el=document.getElementById('hero-timer');if(!el)return;var sec=3;setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;el.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s},1000)})();
+      function updateTimer(){
+        if(!timerEl) return;
+        var m = Math.floor(seconds / 60);
+        var s = seconds % 60;
+        timerEl.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+      }
+
+      function startTimer(){
+        seconds = 3;
+        updateTimer();
+        if(timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(function(){
+          seconds++;
+          updateTimer();
+        }, 1000);
+      }
+
+      function typeChar(){
+        if(charIdx <= fullText.length){
+          textEl.textContent = fullText.substring(0, charIdx);
+          charIdx++;
+          setTimeout(typeChar, 80 + (Math.random() * 40));
+        } else {
+          if(timerInterval) clearInterval(timerInterval);
+          setTimeout(function(){
+            charIdx = 0;
+            textEl.textContent = '';
+            startTimer();
+            setTimeout(typeChar, 800);
+          }, 4000);
+        }
+      }
+
+      startTimer();
+      setTimeout(typeChar, 1500);
+    })();
 
     /* Demo section with filler word highlighting */
-    (function(){var fillers=['えっと','あのー','あの','えーと','えー','あー','はい'];var ds=[{title:'Dictate - Meeting',before:'えっと、あの、明日の会議なんですけど、えー、13時からでいいですかね、あの、場所は会議室Aで、えっと、資料は各自持参でお願いします',after:'明日の会議は13時から、場所は会議室Aです。資料は各自持参でお願いします。'},{title:'Dictate - Email',before:'あの、先日の件なんですけど、えーと、確認しましたところ、あー、問題なさそうなので、えっと、このまま進めていただければと、はい、思います',after:'先日の件、確認いたしました。問題ございませんので、このまま進めていただければと思います。'},{title:'Dictate - Minutes',before:'えー、今日の議題は、あのー、来月のリリーススケジュールについてで、えっと、開発チームとしては、あー、15日を目標にしたいんですけど、QAの工数が、えー、まだ確定してなくて',after:'議題：来月のリリーススケジュール。開発チームは15日リリースを目標としているが、QAの工数が未確定。'}];var ts=document.querySelectorAll('.demo-tab'),bE=document.getElementById('demo-before'),aE=document.getElementById('demo-after'),tE=document.getElementById('demo-window-title'),aid=null;function highlightFillers(text){var result=text;fillers.sort(function(a,b){return b.length-a.length});fillers.forEach(function(f){var re=new RegExp(f,'g');result=result.replace(re,'<span class="filler-word">'+f+'</span>')});return result}function ty(el,tx,sp,cb,useHtml){var i=0;if(useHtml){el.innerHTML=''}else{el.textContent=''}el.classList.add('demo-cursor');function s(){if(i<=tx.length){if(useHtml){el.innerHTML=highlightFillers(tx.substring(0,i))}else{el.textContent=tx.substring(0,i)}i++;aid=setTimeout(s,sp)}else{el.classList.remove('demo-cursor');if(cb)cb()}}s()}function pl(idx){if(aid)clearTimeout(aid);var d=ds[idx];tE.textContent=d.title;ts.forEach(function(t,i){t.classList.toggle('active',i===idx)});aE.textContent='';aE.classList.remove('demo-cursor');ty(bE,d.before,22,function(){setTimeout(function(){ty(aE,d.after,28)},500)},true)}ts.forEach(function(t){t.addEventListener('click',function(){pl(parseInt(t.dataset.tab))})});var sec=document.getElementById('demo'),played=false;var ob=new IntersectionObserver(function(e){if(e[0].isIntersecting&&!played){played=true;pl(0)}},{threshold:.25});if(sec)ob.observe(sec)})();
+    (function(){
+      /* Sort fillers longest-first to prevent partial matches */
+      var fillers = ['えーと','えっと','あのー','えー','あー','あの','はい'];
+      var demos = [
+        {title:'Dictate - Meeting', before:'えっと、あの、明日の会議なんですけど、えー、13時からでいいですかね、あの、場所は会議室Aで、えっと、資料は各自持参でお願いします', after:'明日の会議は13時から、場所は会議室Aです。資料は各自持参でお願いします。'},
+        {title:'Dictate - Email', before:'あの、先日の件なんですけど、えーと、確認しましたところ、あー、問題なさそうなので、えっと、このまま進めていただければと、はい、思います', after:'先日の件、確認いたしました。問題ございませんので、このまま進めていただければと思います。'},
+        {title:'Dictate - Minutes', before:'えー、今日の議題は、あのー、来月のリリーススケジュールについてで、えっと、開発チームとしては、あー、15日を目標にしたいんですけど、QAの工数が、えー、まだ確定してなくて', after:'議題：来月のリリーススケジュール。開発チームは15日リリースを目標としているが、QAの工数が未確定。'}
+      ];
+      var tabs = document.querySelectorAll('.demo-tab');
+      var beforeEl = document.getElementById('demo-before');
+      var afterEl = document.getElementById('demo-after');
+      var titleEl = document.getElementById('demo-window-title');
+      var panel = document.getElementById('demo-panel');
+      var activeTimeout = null;
 
-    /* Mobile hamburger menu */
-    (function(){var btn=document.getElementById('mobile-menu-btn'),menu=document.getElementById('mobile-menu');if(!btn||!menu)return;btn.addEventListener('click',function(){menu.classList.toggle('open');var lines=btn.querySelectorAll('.hamburger-line');var isOpen=menu.classList.contains('open');if(isOpen){lines[0].style.transform='rotate(45deg) translate(2px,4px)';lines[1].style.opacity='0';lines[2].style.transform='rotate(-45deg) translate(3px,-5px)';lines[2].style.width='1rem'}else{lines[0].style.transform='';lines[1].style.opacity='';lines[2].style.transform='';lines[2].style.width='0.75rem'}});document.querySelectorAll('.mobile-nav-link').forEach(function(l){l.addEventListener('click',function(){menu.classList.remove('open');var lines=btn.querySelectorAll('.hamburger-line');lines[0].style.transform='';lines[1].style.opacity='';lines[2].style.transform='';lines[2].style.width='0.75rem'})})})();
+      function highlightFillers(text){
+        var result = text;
+        fillers.forEach(function(filler){
+          result = result.replace(new RegExp(filler, 'g'), '<span class="filler-word">' + filler + '</span>');
+        });
+        return result;
+      }
 
-    /* Step connector animation */
-    (function(){var conn=document.getElementById('step-connector');if(!conn)return;var ob=new IntersectionObserver(function(e){if(e[0].isIntersecting){conn.classList.add('animate-fill')}},{threshold:.5});ob.observe(conn)})();
+      function typeText(el, text, speed, callback, useHighlight){
+        var i = 0;
+        el.textContent = '';
+        el.innerHTML = '';
+        el.classList.add('demo-cursor');
+        function step(){
+          if(i <= text.length){
+            var typed = text.substring(0, i);
+            if(useHighlight){
+              el.innerHTML = highlightFillers(typed);
+            } else {
+              el.textContent = typed;
+            }
+            i++;
+            activeTimeout = setTimeout(step, speed);
+          } else {
+            el.classList.remove('demo-cursor');
+            if(callback) callback();
+          }
+        }
+        step();
+      }
 
-    /* Trust badge counter animation */
-    (function(){var counters=document.querySelectorAll('.trust-counter');counters.forEach(function(el){var target=parseInt(el.dataset.target);var ob=new IntersectionObserver(function(entries){if(entries[0].isIntersecting){var current=0;var increment=function(){if(current<target){current++;el.textContent=current;setTimeout(increment,150)}};increment()}},{threshold:.5});ob.observe(el)})})();
+      function playDemo(idx){
+        if(activeTimeout) clearTimeout(activeTimeout);
+        var demo = demos[idx];
+        titleEl.textContent = demo.title;
+        tabs.forEach(function(tab, i){
+          var isActive = i === idx;
+          tab.classList.toggle('active', isActive);
+          tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        if(panel) panel.setAttribute('aria-labelledby', 'tab-' + idx);
+        afterEl.textContent = '';
+        afterEl.innerHTML = '';
+        afterEl.classList.remove('demo-cursor');
+        typeText(beforeEl, demo.before, 22, function(){
+          setTimeout(function(){
+            typeText(afterEl, demo.after, 28, null, false);
+          }, 500);
+        }, true);
+      }
+
+      tabs.forEach(function(tab){
+        tab.addEventListener('click', function(){
+          playDemo(parseInt(tab.dataset.tab));
+        });
+      });
+
+      /* Auto-play when demo section scrolls into view */
+      var demoSection = document.getElementById('demo');
+      var hasPlayed = false;
+      var ob = new IntersectionObserver(function(entries){
+        if(entries[0].isIntersecting && !hasPlayed){
+          hasPlayed = true;
+          playDemo(0);
+          ob.unobserve(demoSection);
+        }
+      },{threshold:.25});
+      if(demoSection) ob.observe(demoSection);
+    })();
+
+    /* Mobile hamburger menu with aria-expanded */
+    (function(){
+      var btn = document.getElementById('mobile-menu-btn');
+      var menu = document.getElementById('mobile-menu');
+      if(!btn || !menu) return;
+
+      btn.addEventListener('click', function(){
+        menu.classList.toggle('open');
+        var lines = btn.querySelectorAll('.hamburger-line');
+        var isOpen = menu.classList.contains('open');
+        btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        if(isOpen){
+          lines[0].style.transform = 'rotate(45deg) translate(3px, 3px)';
+          lines[1].style.opacity = '0';
+          lines[2].style.transform = 'rotate(-45deg) translate(4px, -4px)';
+          lines[2].style.width = '1rem';
+        } else {
+          lines[0].style.transform = '';
+          lines[1].style.opacity = '';
+          lines[2].style.transform = '';
+          lines[2].style.width = '0.75rem';
+        }
+      });
+
+      document.querySelectorAll('.mobile-nav-link').forEach(function(link){
+        link.addEventListener('click', function(){
+          menu.classList.remove('open');
+          btn.setAttribute('aria-expanded', 'false');
+          var lines = btn.querySelectorAll('.hamburger-line');
+          lines[0].style.transform = '';
+          lines[1].style.opacity = '';
+          lines[2].style.transform = '';
+          lines[2].style.width = '0.75rem';
+        });
+      });
+    })();
+
+    /* Step connector animation - unobserve after triggering */
+    (function(){
+      var conn = document.getElementById('step-connector');
+      if(!conn) return;
+      var ob = new IntersectionObserver(function(entries){
+        if(entries[0].isIntersecting){
+          conn.classList.add('animate-fill');
+          ob.unobserve(conn);
+        }
+      },{threshold:.5});
+      ob.observe(conn);
+    })();
+
+    /* Trust badge counter animation - unobserve after triggering */
+    (function(){
+      document.querySelectorAll('.trust-counter').forEach(function(el){
+        var target = parseInt(el.dataset.target);
+        var ob = new IntersectionObserver(function(entries){
+          if(entries[0].isIntersecting){
+            var current = 0;
+            var increment = function(){
+              if(current < target){
+                current++;
+                el.textContent = current;
+                setTimeout(increment, 150);
+              }
+            };
+            increment();
+            ob.unobserve(el);
+          }
+        },{threshold:.5});
+        ob.observe(el);
+      });
+    })();
   </script>
 </body>
 </html>
