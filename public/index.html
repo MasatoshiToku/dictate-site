@@ -15,256 +15,322 @@
   <title>Dictate - AI音声文字起こし for macOS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'Noto Sans JP', 'sans-serif'],
+            sans: ['Inter', 'Noto Sans JP', 'system-ui', 'sans-serif'],
             mono: ['JetBrains Mono', 'monospace'],
           },
           colors: {
-            brand: { 50:'#f5f3ff', 100:'#ede9fe', 400:'#a78bfa', 500:'#8b5cf6', 600:'#7c3aed', 700:'#6d28d9' }
+            surface: {
+              0: '#09090b',
+              1: '#0c0c10',
+              2: '#111118',
+              3: '#18181f',
+              4: '#1f1f28',
+            },
+            accent: {
+              50: '#f0edff',
+              100: '#ddd6fe',
+              200: '#c4b5fd',
+              300: '#a78bfa',
+              400: '#8b5cf6',
+              500: '#7c3aed',
+              600: '#6d28d9',
+            }
           }
         }
       }
     }
   </script>
   <style>
-    .reveal { opacity:0; transform:translateY(40px); transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1); }
-    .reveal.visible { opacity:1; transform:translateY(0); }
-    .reveal-delay-1 { transition-delay:.1s } .reveal-delay-2 { transition-delay:.2s }
-    .reveal-delay-3 { transition-delay:.3s } .reveal-delay-4 { transition-delay:.4s }
-
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 256px 256px;
+    }
+    .dot-grid {
+      background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .reveal {
+      opacity: 0; transform: translateY(32px);
+      transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay:.08s } .reveal-delay-2 { transition-delay:.16s }
+    .reveal-delay-3 { transition-delay:.24s } .reveal-delay-4 { transition-delay:.32s }
+    .reveal-delay-5 { transition-delay:.40s }
     @keyframes gradient-shift { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
     .animated-gradient-bg {
-      background:linear-gradient(135deg,#0f0a1e 0%,#1a0a2e 20%,#0a1628 40%,#0f1a2e 60%,#1a0a2e 80%,#0f0a1e 100%);
-      background-size:400% 400%; animation:gradient-shift 15s ease infinite;
+      background: linear-gradient(135deg,#09090b 0%,#0d0a1a 25%,#090e1a 50%,#0d0a1a 75%,#09090b 100%);
+      background-size: 400% 400%; animation: gradient-shift 20s ease infinite;
     }
     @keyframes text-gradient { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
-    .animated-gradient-text {
-      background:linear-gradient(90deg,#a78bfa,#60a5fa,#c084fc,#818cf8,#a78bfa);
-      background-size:300% 100%; -webkit-background-clip:text; background-clip:text;
-      -webkit-text-fill-color:transparent; animation:text-gradient 6s ease infinite;
+    .gradient-text {
+      background: linear-gradient(135deg,#a78bfa,#60a5fa,#c084fc,#818cf8,#a78bfa);
+      background-size: 300% 100%; -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; animation: text-gradient 8s ease infinite;
     }
-    .btn-glow { position:relative; transition:transform .3s ease,box-shadow .3s ease; }
-    .btn-glow:hover { transform:scale(1.05); box-shadow:0 0 30px rgba(139,92,246,.5),0 0 60px rgba(139,92,246,.2); }
-    @keyframes badge-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,.4)} 50%{box-shadow:0 0 0 8px rgba(139,92,246,0)} }
-    .badge-pulse { animation:badge-pulse 2.5s ease infinite; }
-    .feature-card { transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease; }
-    .feature-card:hover { transform:translateY(-6px); box-shadow:0 20px 40px rgba(139,92,246,.15); border-color:rgba(139,92,246,.5); }
-    .glass { background:rgba(255,255,255,.03); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
-
-    /* Audio bars - enhanced */
-    @keyframes audio-bar { 0%,100%{height:20%} 50%{height:90%} }
-
-    /* Floating orbs */
-    @keyframes float-orb-1 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-30px) scale(1.05)} 66%{transform:translate(-20px,20px) scale(.95)} }
-    @keyframes float-orb-2 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(-40px,20px) scale(.95)} 66%{transform:translate(20px,-40px) scale(1.05)} }
-    .float-orb-1 { animation:float-orb-1 20s ease-in-out infinite; }
-    .float-orb-2 { animation:float-orb-2 25s ease-in-out infinite; }
-
-    /* Typing cursor */
+    .glass { background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    .glass-subtle { background: rgba(255,255,255,0.015); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+    .feature-card {
+      transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), box-shadow 0.4s cubic-bezier(0.22,1,0.36,1), border-color 0.4s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 24px 48px rgba(139,92,246,0.08), 0 0 0 1px rgba(139,92,246,0.15);
+      border-color: rgba(139,92,246,0.25);
+    }
+    .btn-primary {
+      position: relative; transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), box-shadow 0.3s ease;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(139,92,246,0.4), 0 0 80px rgba(139,92,246,0.15); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-outline { position: relative; background: transparent; z-index: 0; }
+    .btn-outline::before {
+      content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+      background: linear-gradient(135deg,rgba(139,92,246,0.5),rgba(96,165,250,0.5));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; transition: opacity 0.3s ease;
+    }
+    .btn-outline:hover::before { background: linear-gradient(135deg,rgba(139,92,246,0.8),rgba(96,165,250,0.8)); }
+    @keyframes audio-bar { 0%,100%{height:15%} 50%{height:85%} }
+    @keyframes float-1 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(20px,-30px) scale(1.02)} 66%{transform:translate(-15px,15px) scale(.98)} }
+    @keyframes float-2 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(-30px,20px) scale(.98)} 66%{transform:translate(15px,-25px) scale(1.02)} }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-    .typing-cursor { animation:blink 1s step-end infinite; }
-
-    /* CTA pulse */
-    @keyframes cta-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,.4)} 50%{box-shadow:0 0 0 12px rgba(139,92,246,0)} }
-    .cta-pulse { animation:cta-pulse 3s ease infinite; }
-
-    /* Scroll indicator bounce */
-    @keyframes scroll-bounce { 0%,100%{transform:translateY(0);opacity:.6} 50%{transform:translateY(8px);opacity:1} }
-    .scroll-indicator { animation:scroll-bounce 2s ease-in-out infinite; }
-
-    /* Sticky nav blur on scroll */
-    .nav-scrolled { background:rgba(10,10,20,.8)!important; border-color:rgba(255,255,255,.08)!important; }
-
-    /* FAQ smooth open with grid trick */
-    details .faq-body { display:grid; grid-template-rows:0fr; transition:grid-template-rows .3s ease,opacity .3s ease; opacity:0; }
-    details[open] .faq-body { grid-template-rows:1fr; opacity:1; }
-    details .faq-body > div { overflow:hidden; }
-
-    /* Before/After demo window */
-    .mac-window { border-radius:12px; overflow:hidden; }
-    .mac-titlebar { display:flex; align-items:center; gap:6px; padding:10px 14px; background:rgba(255,255,255,.05); }
-    .mac-dot { width:10px; height:10px; border-radius:50%; }
-
-    /* Demo tab */
-    .demo-tab { transition:color .2s,border-color .2s; cursor:pointer; }
-    .demo-tab.active { color:#a78bfa; border-color:#a78bfa; }
-    .demo-tab:not(.active) { color:#6b7280; border-color:transparent; }
-    .demo-tab:hover:not(.active) { color:#9ca3af; }
-
-    /* Typewriter for demo */
-    @keyframes cursor-blink { 0%,100%{border-color:rgba(139,92,246,.8)} 50%{border-color:transparent} }
-    .demo-cursor { border-right:2px solid rgba(139,92,246,.8); animation:cursor-blink 1s step-end infinite; padding-right:2px; }
-
-    /* Transform arrow animation */
-    @keyframes arrow-pulse { 0%,100%{opacity:.4;transform:translateX(0)} 50%{opacity:1;transform:translateX(4px)} }
-    .arrow-pulse { animation:arrow-pulse 1.5s ease-in-out infinite; }
+    .typing-cursor { animation: blink 1s step-end infinite; }
+    @keyframes badge-glow { 0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,.25)} 50%{box-shadow:0 0 0 6px rgba(139,92,246,0)} }
+    .badge-glow { animation: badge-glow 3s ease infinite; }
+    @keyframes scroll-float { 0%,100%{transform:translateY(0);opacity:.4} 50%{transform:translateY(6px);opacity:.8} }
+    .scroll-indicator { animation: scroll-float 2.5s ease-in-out infinite; }
+    .nav-scrolled { background: rgba(9,9,11,0.85)!important; border-color: rgba(255,255,255,0.06)!important; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .nav-link { position: relative; transition: color 0.2s ease; }
+    .nav-link::after {
+      content: ''; position: absolute; bottom: -4px; left: 50%; width: 0; height: 1.5px;
+      background: linear-gradient(90deg,#a78bfa,#60a5fa); border-radius: 1px;
+      transition: width 0.3s cubic-bezier(0.22,1,0.36,1), left 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    .nav-link:hover::after, .nav-link.active::after { width: 100%; left: 0; }
+    .nav-link.active { color: #e2e8f0!important; }
+    details .faq-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .35s cubic-bezier(0.22,1,0.36,1), opacity .35s ease; opacity: 0; }
+    details[open] .faq-body { grid-template-rows: 1fr; opacity: 1; }
+    details .faq-body > div { overflow: hidden; }
+    .mac-window { border-radius: 12px; overflow: hidden; }
+    .mac-titlebar { display: flex; align-items: center; gap: 7px; padding: 12px 16px; background: rgba(255,255,255,0.03); }
+    .mac-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .demo-tab { transition: color .25s ease, border-color .25s ease, background .25s ease; cursor: pointer; border-radius: 8px; }
+    .demo-tab.active { color: #e2e8f0; background: rgba(139,92,246,0.1); border-color: rgba(139,92,246,0.3); }
+    .demo-tab:not(.active) { color: #6b7280; border-color: transparent; }
+    .demo-tab:hover:not(.active) { color: #9ca3af; background: rgba(255,255,255,0.03); }
+    @keyframes cursor-blink { 0%,100%{border-color:rgba(139,92,246,.7)} 50%{border-color:transparent} }
+    .demo-cursor { border-right: 2px solid rgba(139,92,246,.7); animation: cursor-blink 1s step-end infinite; padding-right: 2px; }
+    @keyframes arrow-pulse { 0%,100%{opacity:.3;transform:translateX(0)} 50%{opacity:1;transform:translateX(4px)} }
+    .arrow-pulse { animation: arrow-pulse 2s ease-in-out infinite; }
+    .section-glow { position: relative; }
+    .section-glow::before {
+      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: min(600px,80%); height: 1px;
+      background: linear-gradient(90deg,transparent,rgba(139,92,246,0.2),transparent);
+    }
+    html { scroll-behavior: smooth; }
+    ::selection { background: rgba(139,92,246,0.3); color: #fff; }
+    .step-connector { background: linear-gradient(90deg,rgba(139,92,246,.15),rgba(96,165,250,.15),rgba(139,92,246,.15)); }
+    @keyframes rec-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.85)} }
+    .rec-pulse { animation: rec-pulse 1.5s ease-in-out infinite; }
   </style>
 </head>
-<body class="bg-gray-950 text-white font-sans overflow-x-hidden">
+<body class="bg-surface-0 text-white font-sans overflow-x-hidden antialiased">
 
   <!-- Navigation -->
-  <nav id="main-nav" class="sticky top-0 z-50 glass border-b border-white/5 transition-all duration-300">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <span class="text-xl font-bold animated-gradient-text">Dictate</span>
-        <div class="hidden sm:flex items-center gap-8 text-sm text-gray-400">
-          <a href="#features" class="hover:text-white transition-colors">機能</a>
-          <a href="#demo" class="hover:text-white transition-colors">デモ</a>
-          <a href="#how-it-works" class="hover:text-white transition-colors">使い方</a>
-          <a href="#faq" class="hover:text-white transition-colors">FAQ</a>
+  <nav id="main-nav" class="sticky top-0 z-50 glass-subtle border-b border-white/[0.04] transition-all duration-500">
+    <div class="max-w-5xl mx-auto px-5 sm:px-8">
+      <div class="flex justify-between items-center h-14">
+        <a href="#" class="text-lg font-bold gradient-text tracking-tight">Dictate</a>
+        <div class="hidden sm:flex items-center gap-7 text-[13px] text-gray-500">
+          <a href="#features" class="nav-link hover:text-gray-200">Features</a>
+          <a href="#demo" class="nav-link hover:text-gray-200">Demo</a>
+          <a href="#how-it-works" class="nav-link hover:text-gray-200">Setup</a>
+          <a href="#faq" class="nav-link hover:text-gray-200">FAQ</a>
         </div>
-        <a href="#download" class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-sm font-medium px-5 py-2 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25">
-          ダウンロード
+        <a href="#download" class="text-[13px] font-medium px-4 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.08] text-gray-300 hover:bg-white/[0.1] hover:text-white transition-all duration-300">
+          Download
         </a>
       </div>
     </div>
   </nav>
 
   <!-- Hero -->
-  <section class="animated-gradient-bg relative pt-24 pb-32 sm:pt-32 sm:pb-40 px-4 overflow-hidden">
-    <div class="absolute top-20 left-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl float-orb-1"></div>
-    <div class="absolute bottom-20 right-10 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl float-orb-2"></div>
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-900/5 rounded-full blur-3xl"></div>
+  <section class="animated-gradient-bg relative pt-28 pb-36 sm:pt-40 sm:pb-48 px-5 overflow-hidden">
+    <div class="absolute top-20 -left-20 w-[500px] h-[500px] bg-accent-400/[0.04] rounded-full blur-[120px]" style="animation:float-1 25s ease-in-out infinite"></div>
+    <div class="absolute bottom-0 -right-20 w-[600px] h-[600px] bg-blue-500/[0.03] rounded-full blur-[120px]" style="animation:float-2 30s ease-in-out infinite"></div>
+    <div class="dot-grid absolute inset-0 opacity-60"></div>
 
-    <div class="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-16 relative z-10">
+    <div class="max-w-5xl mx-auto flex flex-col lg:flex-row items-center gap-20 relative z-10">
       <div class="flex-1 text-center lg:text-left">
-        <div class="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/30 text-purple-300 text-sm font-medium px-4 py-1.5 rounded-full mb-8 badge-pulse">
-          <span class="w-2 h-2 bg-purple-400 rounded-full"></span>
-          現在無料公開中
+        <div class="inline-flex items-center gap-2 bg-accent-400/[0.06] border border-accent-400/[0.12] text-accent-300 text-xs font-medium px-3.5 py-1.5 rounded-full mb-8 badge-glow">
+          <span class="w-1.5 h-1.5 bg-accent-300 rounded-full rec-pulse"></span>
+          Now available for free
         </div>
-        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 tracking-tight">
+        <h1 class="text-[2.75rem] sm:text-[3.5rem] lg:text-[4rem] font-extrabold leading-[1.1] mb-6 tracking-[-0.03em]">
           話すだけで、<br>
-          <span class="animated-gradient-text" id="hero-typed"></span>
-          <span class="typing-cursor text-purple-400">|</span>
+          <span class="gradient-text" id="hero-typed"></span>
+          <span class="typing-cursor text-accent-300 font-light">|</span>
         </h1>
-        <p class="text-lg sm:text-xl text-gray-400 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0">
-          AIが音声をリアルタイムで文字起こし。フィラーワードを自動除去し、整形されたテキストをアクティブなアプリに直接入力します。
+        <p class="text-base sm:text-lg text-gray-400 mb-10 leading-relaxed max-w-lg mx-auto lg:mx-0 font-light">
+          AIが音声をリアルタイムで文字起こし。<br class="hidden sm:inline">
+          フィラーワードを自動除去し、整形されたテキストを<br class="hidden sm:inline">
+          アクティブなアプリに直接入力します。
         </p>
-        <div class="flex flex-col sm:flex-row gap-4 items-center lg:items-start justify-center lg:justify-start">
-          <a href="https://github.com/MasatoshiToku/dictate/releases/tag/v1.0.0" target="_blank" class="btn-glow inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white text-lg font-semibold px-8 py-4 rounded-xl shadow-lg shadow-purple-500/25">
-            無料でダウンロード
+        <div class="flex flex-col sm:flex-row gap-3.5 items-center lg:items-start justify-center lg:justify-start">
+          <a href="https://github.com/MasatoshiToku/dictate/releases/tag/v1.0.0" target="_blank" class="btn-primary inline-flex items-center gap-2.5 bg-gradient-to-r from-accent-500 to-blue-500 text-white text-sm font-semibold px-7 py-3.5 rounded-xl shadow-lg shadow-accent-500/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            Download for macOS
           </a>
-          <a href="#how-it-works" class="inline-flex items-center gap-2 text-gray-400 hover:text-white text-base font-medium transition-colors">
-            <span class="w-10 h-10 rounded-full border border-gray-600 flex items-center justify-center hover:border-purple-500 transition-colors">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </span>
-            使い方を見る
+          <a href="#how-it-works" class="btn-outline inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm font-medium px-6 py-3.5 rounded-xl transition-colors duration-300">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z"/></svg>
+            How it works
           </a>
         </div>
-        <p class="mt-5 text-sm text-gray-500">macOS対応 / APIキーを用意するだけで今すぐ使える</p>
-        <p class="mt-1 text-xs text-purple-400/60">無料期間中にお試しください</p>
+        <div class="mt-6 flex items-center gap-4 justify-center lg:justify-start text-xs text-gray-600">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            macOS
+          </span>
+          <span class="w-px h-3 bg-gray-800"></span>
+          <span>Gemini AI</span>
+          <span class="w-px h-3 bg-gray-800"></span>
+          <span class="flex items-center gap-1">
+            <kbd class="px-1.5 py-0.5 bg-white/[0.04] border border-white/[0.06] rounded text-[10px] font-mono">&#x2325;</kbd>
+            <span>+</span>
+            <kbd class="px-1.5 py-0.5 bg-white/[0.04] border border-white/[0.06] rounded text-[10px] font-mono">Space</kbd>
+          </span>
+        </div>
       </div>
 
-      <!-- Hero visual - enhanced audio bars -->
+      <!-- Hero visual -->
       <div class="flex-1 flex justify-center">
         <div class="relative">
-          <div class="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-3xl blur-2xl scale-110"></div>
-          <div class="relative w-80 h-56 sm:w-96 sm:h-64 rounded-2xl glass border border-white/10 flex flex-col items-center justify-center gap-4 shadow-2xl">
-            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <div class="absolute -inset-8 rounded-3xl">
+            <div class="absolute inset-0 bg-gradient-to-br from-accent-400/[0.08] to-blue-500/[0.08] rounded-3xl blur-2xl"></div>
+          </div>
+          <div class="relative w-[340px] h-[240px] sm:w-[400px] sm:h-[280px] rounded-2xl bg-surface-2/80 border border-white/[0.06] flex flex-col items-center justify-center shadow-2xl shadow-black/40">
+            <div class="absolute top-3 left-4 flex gap-1.5">
+              <div class="w-2.5 h-2.5 rounded-full bg-white/[0.08]"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-white/[0.08]"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-white/[0.08]"></div>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-400 to-blue-500 flex items-center justify-center shadow-lg shadow-accent-500/25 mb-5">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5a3 3 0 00-3 3v6a3 3 0 006 0v-6a3 3 0 00-3-3z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 10.5a7 7 0 01-14 0"/>
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.5v3m-4 0h8"/>
               </svg>
             </div>
-            <!-- Enhanced audio bars with gradient -->
-            <div class="flex items-end gap-[3px] h-10" id="hero-bars"></div>
-            <div class="flex items-center gap-2 text-sm text-gray-400">
-              <kbd class="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-xs font-mono">Option</kbd>
-              <span>+</span>
-              <kbd class="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-xs font-mono">Space</kbd>
-              <span class="ml-1">で録音開始</span>
+            <div class="flex items-end gap-[3px] h-8" id="hero-bars"></div>
+            <div class="mt-4 flex items-center gap-2 text-xs text-gray-500">
+              <span class="w-1.5 h-1.5 bg-accent-400 rounded-full rec-pulse"></span>
+              <span class="font-mono">Recording...</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Scroll indicator -->
     <div class="absolute bottom-8 left-1/2 -translate-x-1/2 scroll-indicator">
-      <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"/>
       </svg>
     </div>
   </section>
 
-  <!-- Trust badges -->
-  <section class="py-8 px-4 border-b border-white/5">
-    <div class="max-w-4xl mx-auto flex flex-wrap justify-center gap-6 sm:gap-10">
-      <div class="flex items-center gap-2 text-gray-400 text-sm">
-        <svg class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-        macOS専用
+  <!-- Trust indicators -->
+  <section class="py-6 px-5 border-b border-white/[0.03] bg-surface-0">
+    <div class="max-w-3xl mx-auto flex flex-wrap justify-center gap-8 sm:gap-12">
+      <div class="flex items-center gap-2 text-gray-500 text-xs">
+        <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        macOS Native
       </div>
-      <div class="flex items-center gap-2 text-gray-400 text-sm">
-        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
-        Gemini AI搭載
+      <div class="flex items-center gap-2 text-gray-500 text-xs">
+        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+        Powered by Gemini
       </div>
-      <div class="flex items-center gap-2 text-gray-400 text-sm">
-        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
-        プライバシー重視
+      <div class="flex items-center gap-2 text-gray-500 text-xs">
+        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+        Private by Design
       </div>
-      <div class="flex items-center gap-2 text-gray-400 text-sm">
-        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
-        ショートカット一発起動
+      <div class="flex items-center gap-2 text-gray-500 text-xs">
+        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+        Global Shortcut
       </div>
     </div>
   </section>
 
   <!-- Features -->
-  <section id="features" class="py-24 sm:py-32 px-4 relative">
-    <div class="absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-900/50 to-gray-950"></div>
-    <div class="max-w-6xl mx-auto relative z-10">
+  <section id="features" class="py-28 sm:py-36 px-5 relative section-glow">
+    <div class="absolute inset-0 bg-gradient-to-b from-surface-0 via-surface-1/80 to-surface-0"></div>
+    <div class="dot-grid absolute inset-0 opacity-30"></div>
+    <div class="max-w-5xl mx-auto relative z-10">
       <div class="text-center mb-16 reveal">
-        <p class="text-purple-400 text-sm font-semibold tracking-widest mb-3">FEATURES</p>
-        <h2 class="text-3xl sm:text-4xl font-bold mb-4">Dictateの特徴</h2>
-        <p class="text-gray-400 max-w-lg mx-auto">AI音声文字起こしに必要な全てを、ひとつのアプリに</p>
+        <p class="text-accent-300 text-xs font-semibold tracking-[0.2em] uppercase mb-4">Features</p>
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em] mb-4">あなたの声を、<span class="gradient-text">完璧なテキスト</span>に</h2>
+        <p class="text-gray-500 max-w-md mx-auto text-sm">AI音声文字起こしに必要な全てを、ひとつのアプリに</p>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div class="feature-card glass rounded-2xl p-8 border border-white/5 reveal reveal-delay-1">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600/20 to-blue-600/20 border border-purple-500/20 flex items-center justify-center mb-5">
-            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5a3 3 0 00-3 3v6a3 3 0 006 0v-6a3 3 0 00-3-3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 10.5a7 7 0 01-14 0"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 17.5v3m-4 0h8"/></svg>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="feature-card glass rounded-2xl p-7 border border-white/[0.04] sm:col-span-2 lg:col-span-2 reveal reveal-delay-1">
+          <div class="flex flex-col sm:flex-row gap-6">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-400/15 to-blue-500/15 border border-accent-400/10 flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5a3 3 0 00-3 3v6a3 3 0 006 0v-6a3 3 0 00-3-3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 10.5a7 7 0 01-14 0"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 17.5v3m-4 0h8"/></svg>
+            </div>
+            <div>
+              <h3 class="text-base font-semibold mb-2 text-gray-100">AI文字起こし</h3>
+              <p class="text-gray-500 text-sm leading-relaxed">Gemini AIによる高精度な音声認識。日本語に最適化されたモデルで、正確な文字起こしを実現します。話し言葉特有のフィラーワードや言い直しも自動で処理。</p>
+            </div>
           </div>
-          <h3 class="text-lg font-bold mb-2">AI文字起こし</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Gemini AIによる高精度な音声認識。日本語に最適化されたモデルで、正確な文字起こしを実現します。</p>
         </div>
-        <div class="feature-card glass rounded-2xl p-8 border border-white/5 reveal reveal-delay-2">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600/20 to-blue-600/20 border border-purple-500/20 flex items-center justify-center mb-5">
-            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+        <div class="feature-card glass rounded-2xl p-7 border border-white/[0.04] reveal reveal-delay-2">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-400/15 to-blue-500/15 border border-accent-400/10 flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
           </div>
-          <h3 class="text-lg font-bold mb-2">テキスト整形</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">フィラーワード（えっと、あの等）を自動除去。句読点の挿入、言い直しの処理も自動で行います。</p>
+          <h3 class="text-base font-semibold mb-2 text-gray-100">テキスト整形</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">「えっと」「あの」等を自動除去。句読点の挿入も自動です。</p>
         </div>
-        <div class="feature-card glass rounded-2xl p-8 border border-white/5 reveal reveal-delay-3">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600/20 to-blue-600/20 border border-purple-500/20 flex items-center justify-center mb-5">
-            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776"/></svg>
+        <div class="feature-card glass rounded-2xl p-7 border border-white/[0.04] reveal reveal-delay-3">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-400/15 to-blue-500/15 border border-accent-400/10 flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776"/></svg>
           </div>
-          <h3 class="text-lg font-bold mb-2">直接入力</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">文字起こし結果をアクティブなアプリケーションに自動でタイプ入力。コピペ不要で作業が途切れません。</p>
+          <h3 class="text-base font-semibold mb-2 text-gray-100">直接入力</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">アクティブなアプリに自動タイプ入力。コピペ不要です。</p>
         </div>
-        <div class="feature-card glass rounded-2xl p-8 border border-white/5 reveal reveal-delay-4">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600/20 to-blue-600/20 border border-purple-500/20 flex items-center justify-center mb-5">
-            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+        <div class="feature-card glass rounded-2xl p-7 border border-white/[0.04] reveal reveal-delay-4">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-400/15 to-blue-500/15 border border-accent-400/10 flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
           </div>
-          <h3 class="text-lg font-bold mb-2">グローバルショートカット</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Option+Spaceでどのアプリからでも即座に起動。ワークフローを中断しません。</p>
+          <h3 class="text-base font-semibold mb-2 text-gray-100">グローバルショートカット</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">Option+Spaceでどのアプリからでも即起動。ワークフローを中断しません。</p>
         </div>
-        <div class="feature-card glass rounded-2xl p-8 border border-white/5 sm:col-span-2 reveal reveal-delay-4">
+        <div class="feature-card glass rounded-2xl p-7 border border-white/[0.04] sm:col-span-2 reveal reveal-delay-5">
           <div class="flex flex-col sm:flex-row sm:items-start gap-5">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/15 to-cyan-500/15 border border-blue-500/10 flex items-center justify-center flex-shrink-0">
               <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
             <div>
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="text-lg font-bold">リアルタイムプレビュー</h3>
-                <span class="text-xs font-medium text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full">オプション</span>
+              <div class="flex items-center gap-2.5 mb-2">
+                <h3 class="text-base font-semibold text-gray-100">リアルタイムプレビュー</h3>
+                <span class="text-[10px] font-medium text-blue-400 bg-blue-500/[0.08] border border-blue-500/[0.12] px-2 py-0.5 rounded-full">Optional</span>
               </div>
-              <p class="text-gray-400 text-sm leading-relaxed">Deepgramを有効にすると、録音中にリアルタイムで文字起こしのプレビューが表示されます。確定前にどう認識されているか確認でき、安心して話し続けられます。Deepgram APIキーは<kbd class="px-1.5 py-0.5 bg-gray-800 border border-gray-600 rounded text-xs font-mono text-gray-300">F2</kbd>の設定画面で入力できます。</p>
+              <p class="text-gray-500 text-sm leading-relaxed">Deepgramを有効にすると、録音中にリアルタイムで文字起こしプレビューが表示されます。<kbd class="px-1.5 py-0.5 bg-surface-3 border border-white/[0.06] rounded text-[11px] font-mono text-gray-400">F2</kbd>の設定画面で入力できます。</p>
             </div>
           </div>
         </div>
@@ -272,65 +338,52 @@
     </div>
   </section>
 
-  <!-- Before/After Demo -->
-  <section id="demo" class="py-24 sm:py-32 px-4">
+  <!-- Demo -->
+  <section id="demo" class="py-28 sm:py-36 px-5 section-glow">
     <div class="max-w-4xl mx-auto">
-      <div class="text-center mb-16 reveal">
-        <p class="text-purple-400 text-sm font-semibold tracking-widest mb-3">LIVE DEMO</p>
-        <h2 class="text-3xl sm:text-4xl font-bold mb-4">AI変換のビフォー・アフター</h2>
-        <p class="text-gray-400">タブを切り替えて、さまざまな変換例をご覧ください</p>
+      <div class="text-center mb-14 reveal">
+        <p class="text-accent-300 text-xs font-semibold tracking-[0.2em] uppercase mb-4">Demo</p>
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em] mb-4">Before & After</h2>
+        <p class="text-gray-500 text-sm">タブを切り替えて、さまざまな変換例をご覧ください</p>
       </div>
-
       <div class="reveal">
-        <!-- Tab buttons -->
         <div class="flex justify-center gap-2 mb-8">
-          <button class="demo-tab active text-sm font-medium px-4 py-2 border-b-2 transition-all" data-tab="0">会議案内</button>
-          <button class="demo-tab text-sm font-medium px-4 py-2 border-b-2 transition-all" data-tab="1">メール返信</button>
-          <button class="demo-tab text-sm font-medium px-4 py-2 border-b-2 transition-all" data-tab="2">議事録</button>
+          <button class="demo-tab active text-xs font-medium px-4 py-2 border border-transparent" data-tab="0">Meeting</button>
+          <button class="demo-tab text-xs font-medium px-4 py-2 border border-transparent" data-tab="1">Email</button>
+          <button class="demo-tab text-xs font-medium px-4 py-2 border border-transparent" data-tab="2">Minutes</button>
         </div>
-
-        <!-- macOS window mock -->
-        <div class="mac-window glass border border-white/10 shadow-2xl shadow-purple-900/20">
-          <!-- Title bar -->
-          <div class="mac-titlebar border-b border-white/5">
-            <div class="mac-dot bg-[#ff5f57]"></div>
-            <div class="mac-dot bg-[#febc2e]"></div>
-            <div class="mac-dot bg-[#28c840]"></div>
-            <span class="ml-3 text-xs text-gray-500 font-mono" id="demo-window-title">Dictate - 会議案内</span>
+        <div class="mac-window glass border border-white/[0.06] shadow-2xl shadow-black/30">
+          <div class="mac-titlebar border-b border-white/[0.04]">
+            <div class="mac-dot bg-[#ff5f57]/80"></div>
+            <div class="mac-dot bg-[#febc2e]/80"></div>
+            <div class="mac-dot bg-[#28c840]/80"></div>
+            <span class="ml-3 text-[11px] text-gray-600 font-mono" id="demo-window-title">Dictate - Meeting</span>
           </div>
-
-          <!-- Content area -->
           <div class="p-6 sm:p-8">
             <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 md:gap-6 items-start">
-              <!-- Before -->
               <div>
                 <div class="flex items-center gap-2 mb-3">
-                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-14 0m14 0a7 7 0 00-14 0m14 0v1a7 7 0 01-14 0v-1"/></svg>
-                  <span class="text-xs font-semibold text-gray-500 tracking-wider">VOICE INPUT</span>
+                  <svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-14 0m14 0a7 7 0 00-14 0m14 0v1a7 7 0 01-14 0v-1"/></svg>
+                  <span class="text-[10px] font-semibold text-gray-600 tracking-[0.15em] uppercase">Voice Input</span>
                 </div>
-                <div class="bg-white/[0.03] rounded-lg p-4 min-h-[120px] border border-white/5">
-                  <p class="text-gray-400 text-sm leading-relaxed font-mono" id="demo-before"></p>
+                <div class="bg-white/[0.02] rounded-xl p-4 min-h-[120px] border border-white/[0.04]">
+                  <p class="text-gray-500 text-sm leading-relaxed font-mono" id="demo-before"></p>
                 </div>
               </div>
-
-              <!-- Arrow -->
               <div class="hidden md:flex items-center justify-center pt-10">
                 <div class="arrow-pulse">
-                  <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                  <svg class="w-5 h-5 text-accent-300/60" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
                 </div>
               </div>
-              <!-- Arrow mobile -->
-              <div class="flex md:hidden items-center justify-center py-2">
-                <svg class="w-5 h-5 text-purple-400 rotate-90 arrow-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+              <div class="flex md:hidden items-center justify-center py-1">
+                <svg class="w-4 h-4 text-accent-300/60 rotate-90 arrow-pulse" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
               </div>
-
-              <!-- After -->
               <div>
                 <div class="flex items-center gap-2 mb-3">
-                  <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
-                  <span class="text-xs font-semibold text-purple-400 tracking-wider">AI OUTPUT</span>
+                  <svg class="w-3.5 h-3.5 text-accent-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                  <span class="text-[10px] font-semibold text-accent-300 tracking-[0.15em] uppercase">AI Output</span>
                 </div>
-                <div class="bg-purple-500/[0.04] rounded-lg p-4 min-h-[120px] border border-purple-500/10">
+                <div class="bg-accent-400/[0.03] rounded-xl p-4 min-h-[120px] border border-accent-400/[0.06]">
                   <p class="text-gray-200 text-sm leading-relaxed" id="demo-after"></p>
                 </div>
               </div>
@@ -342,235 +395,211 @@
   </section>
 
   <!-- How it works -->
-  <section id="how-it-works" class="py-24 sm:py-32 px-4 relative">
-    <div class="absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-900/50 to-gray-950"></div>
-    <div class="max-w-6xl mx-auto relative z-10">
+  <section id="how-it-works" class="py-28 sm:py-36 px-5 relative section-glow">
+    <div class="absolute inset-0 bg-gradient-to-b from-surface-0 via-surface-1/80 to-surface-0"></div>
+    <div class="max-w-5xl mx-auto relative z-10">
       <div class="text-center mb-16 reveal">
-        <p class="text-purple-400 text-sm font-semibold tracking-widest mb-3">HOW IT WORKS</p>
-        <h2 class="text-3xl sm:text-4xl font-bold mb-4">3ステップで簡単セットアップ</h2>
-        <p class="text-gray-400">難しい設定は一切不要です</p>
+        <p class="text-accent-300 text-xs font-semibold tracking-[0.2em] uppercase mb-4">Setup</p>
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em] mb-4">3ステップで完了</h2>
+        <p class="text-gray-500 text-sm">難しい設定は一切不要です</p>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 relative">
-        <div class="hidden sm:block absolute top-10 left-[calc(16.67%+2rem)] right-[calc(16.67%+2rem)] h-0.5 bg-gradient-to-r from-purple-600/30 via-blue-500/30 to-purple-600/30"></div>
+        <div class="hidden sm:block absolute top-10 left-[calc(16.67%+2rem)] right-[calc(16.67%+2rem)] h-px step-connector"></div>
         <div class="text-center reveal reveal-delay-1">
           <div class="relative inline-flex">
-            <div class="w-20 h-20 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/20">
-              <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            <div class="w-20 h-20 rounded-2xl bg-surface-2 border border-white/[0.06] flex items-center justify-center mx-auto mb-6 shadow-lg shadow-black/20">
+              <svg class="w-8 h-8 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
             </div>
-            <span class="absolute -top-2 -right-2 w-7 h-7 bg-gray-950 border-2 border-purple-500 rounded-full flex items-center justify-center text-xs font-bold text-purple-400">1</span>
+            <span class="absolute -top-1.5 -right-1.5 w-6 h-6 bg-accent-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md shadow-accent-500/30">1</span>
           </div>
-          <h3 class="text-lg font-bold mb-3">ダウンロード</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">GitHub ReleasesからDMGをダウンロードしてApplicationsにドラッグ。</p>
+          <h3 class="text-base font-semibold mb-2 text-gray-200">ダウンロード</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">GitHub ReleasesからDMGをダウンロードしてApplicationsにドラッグ。</p>
         </div>
         <div class="text-center reveal reveal-delay-2">
           <div class="relative inline-flex">
-            <div class="w-20 h-20 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/20">
-              <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
+            <div class="w-20 h-20 rounded-2xl bg-surface-2 border border-white/[0.06] flex items-center justify-center mx-auto mb-6 shadow-lg shadow-black/20">
+              <svg class="w-8 h-8 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
             </div>
-            <span class="absolute -top-2 -right-2 w-7 h-7 bg-gray-950 border-2 border-purple-500 rounded-full flex items-center justify-center text-xs font-bold text-purple-400">2</span>
+            <span class="absolute -top-1.5 -right-1.5 w-6 h-6 bg-accent-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md shadow-accent-500/30">2</span>
           </div>
-          <h3 class="text-lg font-bold mb-3">APIキー設定</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Google AI StudioでGemini APIキーを無料で取得し、<kbd class="px-1.5 py-0.5 bg-gray-800 border border-gray-600 rounded text-xs font-mono text-gray-300">F2</kbd>キーで設定画面を開いて入力。</p>
+          <h3 class="text-base font-semibold mb-2 text-gray-200">APIキー設定</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">Google AI StudioでGemini APIキーを無料で取得し、<kbd class="px-1.5 py-0.5 bg-surface-3 border border-white/[0.06] rounded text-[11px] font-mono text-gray-400">F2</kbd>で設定。</p>
         </div>
         <div class="text-center reveal reveal-delay-3">
           <div class="relative inline-flex">
-            <div class="w-20 h-20 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/20">
-              <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg>
+            <div class="w-20 h-20 rounded-2xl bg-surface-2 border border-white/[0.06] flex items-center justify-center mx-auto mb-6 shadow-lg shadow-black/20">
+              <svg class="w-8 h-8 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg>
             </div>
-            <span class="absolute -top-2 -right-2 w-7 h-7 bg-gray-950 border-2 border-purple-500 rounded-full flex items-center justify-center text-xs font-bold text-purple-400">3</span>
+            <span class="absolute -top-1.5 -right-1.5 w-6 h-6 bg-accent-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md shadow-accent-500/30">3</span>
           </div>
-          <h3 class="text-lg font-bold mb-3">使い始める</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Option+Spaceを押して話すだけ。テキストが自動入力されます。</p>
+          <h3 class="text-base font-semibold mb-2 text-gray-200">使い始める</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">Option+Spaceを押して話すだけ。テキストが自動入力されます。</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Setup Guide -->
-  <section id="setup" class="py-24 sm:py-32 px-4">
-    <div class="max-w-3xl mx-auto">
-      <div class="text-center mb-16 reveal">
-        <p class="text-purple-400 text-sm font-semibold tracking-widest mb-3">SETUP GUIDE</p>
-        <h2 class="text-3xl sm:text-4xl font-bold mb-4">セットアップガイド</h2>
-        <p class="text-gray-400">Gemini APIキーの取得方法とオプション設定</p>
+  <section id="setup" class="py-28 sm:py-36 px-5 section-glow">
+    <div class="max-w-2xl mx-auto">
+      <div class="text-center mb-14 reveal">
+        <p class="text-accent-300 text-xs font-semibold tracking-[0.2em] uppercase mb-4">Guide</p>
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em] mb-4">セットアップガイド</h2>
+        <p class="text-gray-500 text-sm">APIキーの取得からオプション設定まで</p>
       </div>
-      <div class="glass rounded-2xl p-8 sm:p-10 border border-white/5 reveal">
-        <div class="flex items-start gap-4 mb-8 bg-purple-500/5 border border-purple-500/10 rounded-xl p-5">
-          <div class="w-10 h-10 rounded-lg bg-purple-600/20 flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+      <div class="glass rounded-2xl p-7 sm:p-10 border border-white/[0.04] reveal">
+        <div class="flex items-start gap-3.5 mb-8 bg-accent-400/[0.04] border border-accent-400/[0.08] rounded-xl p-4">
+          <div class="w-8 h-8 rounded-lg bg-accent-400/[0.1] flex items-center justify-center flex-shrink-0 mt-0.5">
+            <svg class="w-4 h-4 text-accent-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
           </div>
-          <p class="text-gray-300 text-sm leading-relaxed">
-            DictateはGoogle Gemini AIを使って音声を文字起こしします。利用するにはご自身のGemini APIキーが必要です。APIキーは<strong class="text-white">無料で取得</strong>できます。
+          <p class="text-gray-400 text-sm leading-relaxed">
+            DictateはGoogle Gemini AIで音声を文字起こしします。APIキーは<strong class="text-gray-200">無料で取得</strong>できます。
           </p>
         </div>
-        <div class="space-y-6">
+        <div class="space-y-5">
           <details class="group" open>
-            <summary class="flex items-start gap-4 cursor-pointer">
-              <span class="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold text-white shadow-sm">1</span>
-              <div class="flex-1">
-                <div class="flex items-center justify-between">
-                  <h4 class="font-semibold text-white">Google AI Studioにアクセス</h4>
-                  <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-              </div>
+            <summary class="flex items-start gap-3.5 cursor-pointer">
+              <span class="w-7 h-7 bg-accent-500 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold text-white shadow-sm mt-0.5">1</span>
+              <div class="flex-1"><div class="flex items-center justify-between">
+                <h4 class="font-semibold text-sm text-gray-200">Google AI Studioにアクセス</h4>
+                <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </div></div>
             </summary>
-            <div class="faq-body ml-12 mt-2"><div>
-              <p class="text-gray-400 text-sm pb-1">
-                <a href="https://aistudio.google.com/apikey" target="_blank" class="text-purple-400 hover:text-purple-300 underline underline-offset-2">aistudio.google.com/apikey</a> にアクセスし、Googleアカウントでログインします。
-              </p>
+            <div class="faq-body ml-[2.85rem] mt-1.5"><div>
+              <p class="text-gray-500 text-sm pb-1"><a href="https://aistudio.google.com/apikey" target="_blank" class="text-accent-300 hover:text-accent-200 underline underline-offset-2 decoration-accent-300/30">aistudio.google.com/apikey</a> にアクセスし、Googleアカウントでログイン。</p>
             </div></div>
           </details>
-          <div class="border-t border-white/5"></div>
+          <div class="border-t border-white/[0.03]"></div>
           <details class="group">
-            <summary class="flex items-start gap-4 cursor-pointer">
-              <span class="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold text-white shadow-sm">2</span>
-              <div class="flex-1">
-                <div class="flex items-center justify-between">
-                  <h4 class="font-semibold text-white">APIキーを作成</h4>
-                  <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-              </div>
+            <summary class="flex items-start gap-3.5 cursor-pointer">
+              <span class="w-7 h-7 bg-accent-500 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold text-white shadow-sm mt-0.5">2</span>
+              <div class="flex-1"><div class="flex items-center justify-between">
+                <h4 class="font-semibold text-sm text-gray-200">APIキーを作成</h4>
+                <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </div></div>
             </summary>
-            <div class="faq-body ml-12 mt-2"><div>
-              <p class="text-gray-400 text-sm pb-1">「APIキーを作成」ボタンをクリックして、新しいAPIキーを発行します。</p>
+            <div class="faq-body ml-[2.85rem] mt-1.5"><div>
+              <p class="text-gray-500 text-sm pb-1">「APIキーを作成」ボタンをクリックして新しいキーを発行。</p>
             </div></div>
           </details>
-          <div class="border-t border-white/5"></div>
+          <div class="border-t border-white/[0.03]"></div>
           <details class="group">
-            <summary class="flex items-start gap-4 cursor-pointer">
-              <span class="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold text-white shadow-sm">3</span>
-              <div class="flex-1">
-                <div class="flex items-center justify-between">
-                  <h4 class="font-semibold text-white">Dictateに設定</h4>
-                  <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-              </div>
+            <summary class="flex items-start gap-3.5 cursor-pointer">
+              <span class="w-7 h-7 bg-accent-500 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold text-white shadow-sm mt-0.5">3</span>
+              <div class="flex-1"><div class="flex items-center justify-between">
+                <h4 class="font-semibold text-sm text-gray-200">Dictateに設定</h4>
+                <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </div></div>
             </summary>
-            <div class="faq-body ml-12 mt-2"><div>
-              <p class="text-gray-400 text-sm pb-1">Dictateアプリで<kbd class="px-1.5 py-0.5 bg-gray-800 border border-gray-600 rounded text-xs font-mono text-gray-300">F2</kbd>キーを押して設定画面を開き、取得したAPIキーを貼り付けます。言語設定やDeepgramの有効化もここで行えます。</p>
+            <div class="faq-body ml-[2.85rem] mt-1.5"><div>
+              <p class="text-gray-500 text-sm pb-1"><kbd class="px-1.5 py-0.5 bg-surface-3 border border-white/[0.06] rounded text-[11px] font-mono text-gray-400">F2</kbd>キーで設定画面を開き、APIキーを入力。</p>
             </div></div>
           </details>
-          <div class="border-t border-white/5"></div>
+          <div class="border-t border-white/[0.03]"></div>
           <details class="group">
-            <summary class="flex items-start gap-4 cursor-pointer">
-              <span class="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold text-white shadow-sm">+</span>
-              <div class="flex-1">
-                <div class="flex items-center justify-between">
-                  <h4 class="font-semibold text-white">リアルタイムプレビューを有効化 <span class="text-xs font-normal text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full ml-2">オプション</span></h4>
-                  <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <summary class="flex items-start gap-3.5 cursor-pointer">
+              <span class="w-7 h-7 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold text-white shadow-sm mt-0.5">+</span>
+              <div class="flex-1"><div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <h4 class="font-semibold text-sm text-gray-200">リアルタイムプレビュー</h4>
+                  <span class="text-[10px] font-medium text-blue-400 bg-blue-500/[0.08] border border-blue-500/[0.12] px-1.5 py-0.5 rounded-full">Optional</span>
                 </div>
-              </div>
+                <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </div></div>
             </summary>
-            <div class="faq-body ml-12 mt-2"><div>
-              <p class="text-gray-400 text-sm pb-1"><a href="https://console.deepgram.com/" target="_blank" class="text-blue-400 hover:text-blue-300 underline underline-offset-2">Deepgram Console</a>でAPIキーを取得し、<kbd class="px-1.5 py-0.5 bg-gray-800 border border-gray-600 rounded text-xs font-mono text-gray-300">F2</kbd>設定画面で入力すると、録音中にリアルタイムで文字起こしプレビューが表示されます。設定しなくてもGemini AIによる文字起こしは正常に動作します。</p>
+            <div class="faq-body ml-[2.85rem] mt-1.5"><div>
+              <p class="text-gray-500 text-sm pb-1"><a href="https://console.deepgram.com/" target="_blank" class="text-blue-400 hover:text-blue-300 underline underline-offset-2 decoration-blue-400/30">Deepgram Console</a>でAPIキーを取得し、<kbd class="px-1.5 py-0.5 bg-surface-3 border border-white/[0.06] rounded text-[11px] font-mono text-gray-400">F2</kbd>で入力。なくても文字起こしは正常に動作します。</p>
             </div></div>
           </details>
         </div>
-        <div class="mt-8 p-4 bg-white/[0.02] rounded-xl border border-white/5">
-          <p class="text-xs text-gray-500 leading-relaxed">
-            Gemini APIには無料枠があり、個人利用であれば十分な量の文字起こしが無料で行えます。詳しくは <a href="https://ai.google.dev/pricing" target="_blank" class="text-purple-400 hover:text-purple-300 underline underline-offset-2">Google AI の料金ページ</a> をご確認ください。
-          </p>
+        <div class="mt-7 p-3.5 bg-white/[0.015] rounded-xl border border-white/[0.03]">
+          <p class="text-[11px] text-gray-600 leading-relaxed">Gemini APIには無料枠があり、個人利用であれば十分です。<a href="https://ai.google.dev/pricing" target="_blank" class="text-accent-300/70 hover:text-accent-300 underline underline-offset-2">料金ページ</a></p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- FAQ -->
-  <section id="faq" class="py-24 sm:py-32 px-4 relative">
-    <div class="absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-900/50 to-gray-950"></div>
-    <div class="max-w-3xl mx-auto relative z-10">
-      <div class="text-center mb-16 reveal">
-        <p class="text-purple-400 text-sm font-semibold tracking-widest mb-3">FAQ</p>
-        <h2 class="text-3xl sm:text-4xl font-bold mb-4">よくある質問</h2>
+  <section id="faq" class="py-28 sm:py-36 px-5 relative section-glow">
+    <div class="absolute inset-0 bg-gradient-to-b from-surface-0 via-surface-1/80 to-surface-0"></div>
+    <div class="max-w-2xl mx-auto relative z-10">
+      <div class="text-center mb-14 reveal">
+        <p class="text-accent-300 text-xs font-semibold tracking-[0.2em] uppercase mb-4">FAQ</p>
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em]">よくある質問</h2>
       </div>
-      <div class="space-y-4">
-        <details class="glass rounded-xl border border-white/5 group reveal reveal-delay-1">
-          <summary class="p-6 cursor-pointer text-base font-semibold flex justify-between items-center gap-4">
+      <div class="space-y-3">
+        <details class="glass rounded-xl border border-white/[0.04] group reveal reveal-delay-1">
+          <summary class="p-5 cursor-pointer text-sm font-semibold flex justify-between items-center gap-4 text-gray-200">
             Gemini APIキーはどこで取得できますか？
-            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
-          <div class="faq-body"><div class="px-6 pb-6 text-gray-400 text-sm leading-relaxed">
-            <a href="https://aistudio.google.com/apikey" target="_blank" class="text-purple-400 hover:underline">Google AI Studio</a>で無料で取得できます。Googleアカウントがあればすぐに発行可能です。
-          </div></div>
+          <div class="faq-body"><div class="px-5 pb-5 text-gray-500 text-sm leading-relaxed"><a href="https://aistudio.google.com/apikey" target="_blank" class="text-accent-300 hover:underline">Google AI Studio</a>で無料で取得できます。</div></div>
         </details>
-        <details class="glass rounded-xl border border-white/5 group reveal reveal-delay-2">
-          <summary class="p-6 cursor-pointer text-base font-semibold flex justify-between items-center gap-4">
+        <details class="glass rounded-xl border border-white/[0.04] group reveal reveal-delay-2">
+          <summary class="p-5 cursor-pointer text-sm font-semibold flex justify-between items-center gap-4 text-gray-200">
             APIキーの利用料金はかかりますか？
-            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
-          <div class="faq-body"><div class="px-6 pb-6 text-gray-400 text-sm leading-relaxed">
-            Gemini APIには無料枠があり、個人利用であれば十分な量を無料で利用できます。大量に使用する場合はGoogle側の従量課金が発生する場合があります。
-          </div></div>
+          <div class="faq-body"><div class="px-5 pb-5 text-gray-500 text-sm leading-relaxed">無料枠があり、個人利用であれば十分です。大量使用時はGoogle側の従量課金が発生する場合があります。</div></div>
         </details>
-        <details class="glass rounded-xl border border-white/5 group reveal reveal-delay-3">
-          <summary class="p-6 cursor-pointer text-base font-semibold flex justify-between items-center gap-4">
+        <details class="glass rounded-xl border border-white/[0.04] group reveal reveal-delay-3">
+          <summary class="p-5 cursor-pointer text-sm font-semibold flex justify-between items-center gap-4 text-gray-200">
             対応OSは？
-            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
-          <div class="faq-body"><div class="px-6 pb-6 text-gray-400 text-sm leading-relaxed">
-            現在macOSのみ対応しています。Windows/Linux版は今後の対応を検討中です。
-          </div></div>
+          <div class="faq-body"><div class="px-5 pb-5 text-gray-500 text-sm leading-relaxed">現在macOSのみ。Windows/Linux版は検討中です。</div></div>
         </details>
-        <details class="glass rounded-xl border border-white/5 group reveal reveal-delay-4">
-          <summary class="p-6 cursor-pointer text-base font-semibold flex justify-between items-center gap-4">
+        <details class="glass rounded-xl border border-white/[0.04] group reveal reveal-delay-4">
+          <summary class="p-5 cursor-pointer text-sm font-semibold flex justify-between items-center gap-4 text-gray-200">
             音声データはサーバーに保存されますか？
-            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
-          <div class="faq-body"><div class="px-6 pb-6 text-gray-400 text-sm leading-relaxed">
-            いいえ。音声データはお使いのMacからGemini APIへ直接送信されます。当サービスのサーバーを経由せず、保存もされません。
-          </div></div>
+          <div class="faq-body"><div class="px-5 pb-5 text-gray-500 text-sm leading-relaxed">いいえ。音声はMacからGemini APIへ直接送信され、サーバーを経由しません。</div></div>
         </details>
-        <details class="glass rounded-xl border border-white/5 group reveal">
-          <summary class="p-6 cursor-pointer text-base font-semibold flex justify-between items-center gap-4">
+        <details class="glass rounded-xl border border-white/[0.04] group reveal">
+          <summary class="p-5 cursor-pointer text-sm font-semibold flex justify-between items-center gap-4 text-gray-200">
             Deepgram APIキーは必要ですか？
-            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-600 group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
-          <div class="faq-body"><div class="px-6 pb-6 text-gray-400 text-sm leading-relaxed">
-            オプションです。Deepgram APIキーを設定するとリアルタイムの中間表示が有効になりますが、なくても文字起こし機能は正常に動作します。
-          </div></div>
+          <div class="faq-body"><div class="px-5 pb-5 text-gray-500 text-sm leading-relaxed">オプションです。リアルタイムプレビューが不要なら設定不要です。</div></div>
         </details>
       </div>
     </div>
   </section>
 
   <!-- Download CTA -->
-  <section id="download" class="py-24 sm:py-32 px-4">
-    <div class="max-w-2xl mx-auto text-center reveal">
+  <section id="download" class="py-28 sm:py-36 px-5 section-glow">
+    <div class="max-w-xl mx-auto text-center reveal">
       <div class="relative">
-        <div class="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-blue-600/10 rounded-3xl blur-2xl scale-110"></div>
-        <div class="relative glass rounded-3xl p-10 sm:p-14 border border-white/10">
-          <div class="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/30 text-purple-300 text-sm font-medium px-4 py-1.5 rounded-full mb-6 badge-pulse">
-            <span class="w-2 h-2 bg-purple-400 rounded-full"></span>
-            無料公開中 -- 今すぐお試しください
+        <div class="absolute -inset-8 bg-gradient-to-br from-accent-400/[0.06] to-blue-500/[0.06] rounded-[2rem] blur-2xl"></div>
+        <div class="relative glass rounded-3xl p-10 sm:p-14 border border-white/[0.06]">
+          <div class="inline-flex items-center gap-2 bg-accent-400/[0.06] border border-accent-400/[0.12] text-accent-300 text-xs font-medium px-3.5 py-1.5 rounded-full mb-6 badge-glow">
+            <span class="w-1.5 h-1.5 bg-accent-300 rounded-full rec-pulse"></span>
+            Free during early access
           </div>
-          <h2 class="text-3xl sm:text-4xl font-bold mb-4">Dictateをダウンロード</h2>
-          <p class="text-gray-400 mb-10 max-w-md mx-auto">APIキーを用意するだけですぐに使えます。将来的に有料化の可能性がありますので、無料期間中にぜひお試しください。</p>
-          <a href="https://github.com/MasatoshiToku/dictate/releases/tag/v1.0.0" target="_blank" class="btn-glow cta-pulse inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white text-lg font-bold px-10 py-5 rounded-xl shadow-xl shadow-purple-500/30 mb-8">
-            DMGをダウンロード（v1.0.0）
+          <h2 class="text-3xl sm:text-4xl font-bold tracking-[-0.02em] mb-3">Dictateをダウンロード</h2>
+          <p class="text-gray-500 text-sm mb-10 max-w-sm mx-auto leading-relaxed">APIキーを用意するだけですぐに使えます。無料期間中にぜひお試しください。</p>
+          <a href="https://github.com/MasatoshiToku/dictate/releases/tag/v1.0.0" target="_blank" class="btn-primary inline-flex items-center gap-2.5 bg-gradient-to-r from-accent-500 to-blue-500 text-white text-sm font-bold px-9 py-4 rounded-xl shadow-xl shadow-accent-500/25 mb-10">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            Download DMG
+            <span class="text-xs font-normal text-white/60">v1.0.0</span>
           </a>
-          <div class="text-left grid grid-cols-1 sm:grid-cols-2 gap-8 mt-8 pt-8 border-t border-white/5">
+          <div class="text-left grid grid-cols-1 sm:grid-cols-2 gap-8 pt-8 border-t border-white/[0.04]">
             <div>
-              <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                動作要件
-              </h3>
-              <ul class="text-sm text-gray-400 space-y-2">
-                <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>macOS</li>
-                <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>マイク権限</li>
-                <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>アクセシビリティ権限</li>
-                <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>Gemini APIキー（<a href="https://aistudio.google.com/apikey" target="_blank" class="text-purple-400 hover:underline">無料取得</a>）</li>
+              <h3 class="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.15em] mb-3.5">Requirements</h3>
+              <ul class="text-sm text-gray-500 space-y-2">
+                <li class="flex items-center gap-2"><span class="w-1 h-1 bg-gray-700 rounded-full"></span>macOS</li>
+                <li class="flex items-center gap-2"><span class="w-1 h-1 bg-gray-700 rounded-full"></span>マイク・アクセシビリティ権限</li>
+                <li class="flex items-center gap-2"><span class="w-1 h-1 bg-gray-700 rounded-full"></span>Gemini APIキー（<a href="https://aistudio.google.com/apikey" target="_blank" class="text-accent-300/60 hover:text-accent-300 underline underline-offset-2">無料</a>）</li>
               </ul>
             </div>
             <div>
-              <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-                インストール手順
-              </h3>
-              <ol class="text-sm text-gray-400 space-y-2">
-                <li class="flex items-start gap-2"><span class="text-purple-400/60 font-mono text-xs mt-0.5">01</span>DMGファイルをダウンロード</li>
-                <li class="flex items-start gap-2"><span class="text-purple-400/60 font-mono text-xs mt-0.5">02</span>アプリをApplicationsにドラッグ</li>
-                <li class="flex items-start gap-2"><span class="text-purple-400/60 font-mono text-xs mt-0.5">03</span>右クリック &rarr;「開く」（初回のみ）</li>
-                <li class="flex items-start gap-2"><span class="text-purple-400/60 font-mono text-xs mt-0.5">04</span><kbd class="px-1 py-0.5 bg-gray-800 border border-gray-600 rounded text-xs font-mono text-gray-300">F2</kbd>で設定画面を開きAPIキーを入力</li>
+              <h3 class="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.15em] mb-3.5">Install</h3>
+              <ol class="text-sm text-gray-500 space-y-2">
+                <li class="flex items-start gap-2"><span class="text-gray-700 font-mono text-[10px] mt-1">01</span>DMGをダウンロード</li>
+                <li class="flex items-start gap-2"><span class="text-gray-700 font-mono text-[10px] mt-1">02</span>Applicationsにドラッグ</li>
+                <li class="flex items-start gap-2"><span class="text-gray-700 font-mono text-[10px] mt-1">03</span>右クリック→「開く」</li>
+                <li class="flex items-start gap-2"><span class="text-gray-700 font-mono text-[10px] mt-1">04</span><kbd class="px-1 py-0.5 bg-surface-3 border border-white/[0.06] rounded text-[10px] font-mono text-gray-500">F2</kbd>でAPIキー入力</li>
               </ol>
             </div>
           </div>
@@ -580,165 +609,30 @@
   </section>
 
   <!-- Footer -->
-  <footer class="border-t border-white/5 py-10 px-4">
-    <div class="max-w-6xl mx-auto">
+  <footer class="border-t border-white/[0.03] py-10 px-5">
+    <div class="max-w-5xl mx-auto">
       <div class="flex flex-col sm:flex-row justify-between items-center gap-6">
-        <span class="text-lg font-bold animated-gradient-text">Dictate</span>
-        <div class="flex flex-wrap justify-center gap-6 text-sm text-gray-500">
-          <a href="/privacy.html" class="hover:text-gray-300 transition-colors">プライバシーポリシー</a>
-          <a href="/terms.html" class="hover:text-gray-300 transition-colors">利用規約</a>
-          <a href="https://github.com/MasatoshiToku/dictate" target="_blank" class="hover:text-gray-300 transition-colors flex items-center gap-1.5">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        <span class="text-base font-bold gradient-text tracking-tight">Dictate</span>
+        <div class="flex flex-wrap justify-center gap-6 text-xs text-gray-600">
+          <a href="/privacy.html" class="hover:text-gray-400 transition-colors">Privacy</a>
+          <a href="/terms.html" class="hover:text-gray-400 transition-colors">Terms</a>
+          <a href="https://github.com/MasatoshiToku/dictate" target="_blank" class="hover:text-gray-400 transition-colors flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
             GitHub
           </a>
         </div>
       </div>
-      <p class="text-center text-xs text-gray-700 mt-8">&copy; 2026 Dictate. All rights reserved.</p>
+      <p class="text-center text-[11px] text-gray-800 mt-8">&copy; 2026 Dictate. All rights reserved.</p>
     </div>
   </footer>
 
   <script>
-    // Intersection Observer for scroll reveal
-    (function() {
-      var obs = new IntersectionObserver(function(entries) {
-        entries.forEach(function(e) { if (e.isIntersecting) e.target.classList.add('visible'); });
-      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-      document.querySelectorAll('.reveal').forEach(function(el) { obs.observe(el); });
-    })();
-
-    // Smooth scroll
-    document.querySelectorAll('a[href^="#"]').forEach(function(link) {
-      link.addEventListener('click', function(e) {
-        var t = document.querySelector(link.getAttribute('href'));
-        if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); }
-      });
-    });
-
-    // Sticky nav blur on scroll
-    (function() {
-      var nav = document.getElementById('main-nav');
-      window.addEventListener('scroll', function() {
-        nav.classList.toggle('nav-scrolled', window.scrollY > 50);
-      }, { passive: true });
-    })();
-
-    // Hero typing animation
-    (function() {
-      var phrases = ['テキストに。', 'メールに。', '議事録に。', 'チャットに。'];
-      var el = document.getElementById('hero-typed');
-      if (!el) return;
-      var pi = 0, ci = 0, del = false;
-      function tick() {
-        var cur = phrases[pi];
-        if (!del) {
-          el.textContent = cur.substring(0, ci + 1); ci++;
-          if (ci === cur.length) { del = true; setTimeout(tick, 2000); return; }
-          setTimeout(tick, 120);
-        } else {
-          el.textContent = cur.substring(0, ci - 1); ci--;
-          if (ci === 0) { del = false; pi = (pi + 1) % phrases.length; setTimeout(tick, 400); return; }
-          setTimeout(tick, 60);
-        }
-      }
-      setTimeout(tick, 800);
-    })();
-
-    // Enhanced hero audio bars (16 bars with gradient)
-    (function() {
-      var container = document.getElementById('hero-bars');
-      if (!container) return;
-      for (var i = 0; i < 16; i++) {
-        var bar = document.createElement('div');
-        var hue = 260 + (i / 15) * 40; // purple to blue gradient
-        bar.className = 'rounded-full';
-        bar.style.cssText = 'width:3px;background:linear-gradient(to top,hsl(' + hue + ',70%,60%),hsl(' + (hue+20) + ',80%,70%));animation:audio-bar 1.2s ease-in-out infinite;animation-delay:' + (i * 0.08) + 's;height:' + (20 + Math.random() * 60) + '%;';
-        container.appendChild(bar);
-      }
-    })();
-
-    // Before/After demo with typewriter animation
-    (function() {
-      var demos = [
-        {
-          title: 'Dictate - 会議案内',
-          before: 'えっと、あの、明日の会議なんですけど、えー、13時からでいいですかね、あの、場所は会議室Aで、えっと、資料は各自持参でお願いします',
-          after: '明日の会議は13時から、場所は会議室Aです。資料は各自持参でお願いします。'
-        },
-        {
-          title: 'Dictate - メール返信',
-          before: 'あの、先日の件なんですけど、えーと、確認しましたところ、あー、問題なさそうなので、えっと、このまま進めていただければと、はい、思います',
-          after: '先日の件、確認いたしました。問題ございませんので、このまま進めていただければと思います。'
-        },
-        {
-          title: 'Dictate - 議事録',
-          before: 'えー、今日の議題は、あのー、来月のリリーススケジュールについてで、えっと、開発チームとしては、あー、15日を目標にしたいんですけど、QAの工数が、えー、まだ確定してなくて',
-          after: '議題：来月のリリーススケジュール。開発チームは15日リリースを目標としているが、QAの工数が未確定。'
-        }
-      ];
-
-      var tabs = document.querySelectorAll('.demo-tab');
-      var beforeEl = document.getElementById('demo-before');
-      var afterEl = document.getElementById('demo-after');
-      var titleEl = document.getElementById('demo-window-title');
-      var currentTab = 0;
-      var animId = null;
-
-      function typeText(el, text, speed, cb) {
-        var i = 0;
-        el.textContent = '';
-        el.classList.add('demo-cursor');
-        function step() {
-          if (i <= text.length) {
-            el.textContent = text.substring(0, i);
-            i++;
-            animId = setTimeout(step, speed);
-          } else {
-            el.classList.remove('demo-cursor');
-            if (cb) cb();
-          }
-        }
-        step();
-      }
-
-      function playDemo(idx) {
-        if (animId) clearTimeout(animId);
-        currentTab = idx;
-        var d = demos[idx];
-        titleEl.textContent = d.title;
-
-        // Update active tab
-        tabs.forEach(function(t, i) {
-          t.classList.toggle('active', i === idx);
-        });
-
-        // Animate before text, then after text
-        afterEl.textContent = '';
-        afterEl.classList.remove('demo-cursor');
-        typeText(beforeEl, d.before, 25, function() {
-          setTimeout(function() {
-            typeText(afterEl, d.after, 30);
-          }, 600);
-        });
-      }
-
-      tabs.forEach(function(tab) {
-        tab.addEventListener('click', function() {
-          playDemo(parseInt(tab.dataset.tab));
-        });
-      });
-
-      // Auto-play first demo when section is visible
-      var demoSection = document.getElementById('demo');
-      var played = false;
-      var demoObs = new IntersectionObserver(function(entries) {
-        if (entries[0].isIntersecting && !played) {
-          played = true;
-          playDemo(0);
-        }
-      }, { threshold: 0.3 });
-      if (demoSection) demoObs.observe(demoSection);
-    })();
+    (function(){var o=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)x.target.classList.add('visible')})},{threshold:.08,rootMargin:'0px 0px -30px 0px'});document.querySelectorAll('.reveal').forEach(function(el){o.observe(el)})})();
+    document.querySelectorAll('a[href^="#"]').forEach(function(l){l.addEventListener('click',function(e){var t=document.querySelector(l.getAttribute('href'));if(t){e.preventDefault();window.scrollTo({top:t.getBoundingClientRect().top+window.pageYOffset-60,behavior:'smooth'})}})});
+    (function(){var n=document.getElementById('main-nav'),ls=document.querySelectorAll('.nav-link'),ss=['features','demo','how-it-works','faq'].map(function(id){return document.getElementById(id)}).filter(Boolean);window.addEventListener('scroll',function(){n.classList.toggle('nav-scrolled',window.scrollY>30);var p=window.scrollY+120,a=-1;ss.forEach(function(s,i){if(s.offsetTop<=p)a=i});ls.forEach(function(l,i){l.classList.toggle('active',i===a)})},{passive:true})})();
+    (function(){var p=['テキストに。','メールに。','議事録に。','チャットに。'],el=document.getElementById('hero-typed');if(!el)return;var pi=0,ci=0,d=false;function t(){var c=p[pi];if(!d){el.textContent=c.substring(0,ci+1);ci++;if(ci===c.length){d=true;setTimeout(t,2200);return}setTimeout(t,100)}else{el.textContent=c.substring(0,ci-1);ci--;if(ci===0){d=false;pi=(pi+1)%p.length;setTimeout(t,500);return}setTimeout(t,50)}}setTimeout(t,1000)})();
+    (function(){var c=document.getElementById('hero-bars');if(!c)return;for(var i=0;i<20;i++){var b=document.createElement('div'),h=260+(i/19)*40;b.className='rounded-full';b.style.cssText='width:2.5px;background:linear-gradient(to top,hsl('+h+',60%,55%),hsl('+(h+20)+',70%,65%));animation:audio-bar 1.4s ease-in-out infinite;animation-delay:'+(i*0.07)+'s;height:'+(15+Math.random()*55)+'%;opacity:0.7;';c.appendChild(b)}})();
+    (function(){var ds=[{title:'Dictate - Meeting',before:'えっと、あの、明日の会議なんですけど、えー、13時からでいいですかね、あの、場所は会議室Aで、えっと、資料は各自持参でお願いします',after:'明日の会議は13時から、場所は会議室Aです。資料は各自持参でお願いします。'},{title:'Dictate - Email',before:'あの、先日の件なんですけど、えーと、確認しましたところ、あー、問題なさそうなので、えっと、このまま進めていただければと、はい、思います',after:'先日の件、確認いたしました。問題ございませんので、このまま進めていただければと思います。'},{title:'Dictate - Minutes',before:'えー、今日の議題は、あのー、来月のリリーススケジュールについてで、えっと、開発チームとしては、あー、15日を目標にしたいんですけど、QAの工数が、えー、まだ確定してなくて',after:'議題：来月のリリーススケジュール。開発チームは15日リリースを目標としているが、QAの工数が未確定。'}];var ts=document.querySelectorAll('.demo-tab'),bE=document.getElementById('demo-before'),aE=document.getElementById('demo-after'),tE=document.getElementById('demo-window-title'),aid=null;function ty(el,tx,sp,cb){var i=0;el.textContent='';el.classList.add('demo-cursor');function s(){if(i<=tx.length){el.textContent=tx.substring(0,i);i++;aid=setTimeout(s,sp)}else{el.classList.remove('demo-cursor');if(cb)cb()}}s()}function pl(idx){if(aid)clearTimeout(aid);var d=ds[idx];tE.textContent=d.title;ts.forEach(function(t,i){t.classList.toggle('active',i===idx)});aE.textContent='';aE.classList.remove('demo-cursor');ty(bE,d.before,22,function(){setTimeout(function(){ty(aE,d.after,28)},500)})}ts.forEach(function(t){t.addEventListener('click',function(){pl(parseInt(t.dataset.tab))})});var sec=document.getElementById('demo'),played=false;var ob=new IntersectionObserver(function(e){if(e[0].isIntersecting&&!played){played=true;pl(0)}},{threshold:.25});if(sec)ob.observe(sec)})();
   </script>
-
 </body>
 </html>
